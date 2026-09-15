@@ -6,21 +6,119 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>TEMU US 商品经营驾驶舱 P0-8.1</title>
-<style>body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033;display:grid;place-items:center;min-height:100vh}.box{background:#fff;border:1px solid #e4e9f1;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(25,40,65,.06);max-width:560px}.muted{color:#718096;margin-top:8px}.err{color:#b42318;margin-top:12px}</style>
+<title>TEMU US 商品经营驾驶舱 P0-8.2</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.center{min-height:100%;display:grid;place-items:center;padding:20px}.box{width:min(440px,100%);background:#fff;border:1px solid #e4e9f1;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(25,40,65,.06)}h1{font-size:24px;margin:0 0 8px}.muted{color:#718096;font-size:14px}.notice{margin-top:14px;padding:10px 12px;border-radius:10px;background:#eef6ff;border:1px solid #cfe4ff;color:#34527a;font-size:13px}.err{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff1f2;color:#b42318;font-size:13px}.form{display:grid;gap:10px;margin-top:18px}input,button{font:inherit;padding:11px 12px;border-radius:10px}input{border:1px solid #d7dde8;background:#fff}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.hide{display:none!important}iframe{display:block;border:0;width:100%;height:100vh;background:#f4f7fb}
+</style>
 </head>
 <body>
-<div class="box"><b>正在载入 P0-8.1 商品经营驾驶舱…</b><div class="muted">此入口强制绕过旧页面缓存。</div><div id="err" class="err"></div></div>
+<div id="gate" class="center">
+  <section class="box">
+    <h1>TEMU US 商品经营驾驶舱</h1>
+    <div id="sub" class="muted">正在验证登录状态…</div>
+    <div id="loginNotice" class="notice hide">登录令牌已过期。请重新登录一次；本次升级后会保存 refresh token，后续可自动续期。</div>
+    <form id="loginForm" class="form hide">
+      <input id="email" type="email" placeholder="邮箱" required>
+      <input id="password" type="password" placeholder="密码" required>
+      <button id="loginBtn" type="submit">登录并进入驾驶舱</button>
+    </form>
+    <div id="err" class="err hide"></div>
+  </section>
+</div>
+<div id="frameWrap" class="hide"></div>
 <script>
-(async()=>{
+const SUPABASE_URL='https://iscadepgzegrvcqzosso.supabase.co';
+const KEY='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
+const API=SUPABASE_URL+'/functions/v1/temu-ops';
+const q=id=>document.getElementById(id);
+let refreshTimer=null;
+
+function saveSession(d){
+  if(d.access_token)localStorage.setItem('temu_token',d.access_token);
+  if(d.refresh_token)localStorage.setItem('temu_refresh_token',d.refresh_token);
+  const expiresAt=d.expires_at?Number(d.expires_at)*1000:(d.expires_in?Date.now()+Number(d.expires_in)*1000:null);
+  if(expiresAt)localStorage.setItem('temu_expires_at',String(expiresAt));
+}
+function clearSession(){
+  localStorage.removeItem('temu_token');
+  localStorage.removeItem('temu_refresh_token');
+  localStorage.removeItem('temu_expires_at');
+}
+async function tokenRequest(grant,body){
+  const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type='+grant,{method:'POST',headers:{'content-type':'application/json','apikey':KEY},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error_description||d.msg||d.error||'登录失败');
+  saveSession(d);
+  return d;
+}
+async function refreshSession(){
+  const rt=localStorage.getItem('temu_refresh_token');
+  if(!rt)throw new Error('NO_REFRESH_TOKEN');
+  return tokenRequest('refresh_token',{refresh_token:rt});
+}
+async function validateAccess(){
+  let token=localStorage.getItem('temu_token')||'';
+  if(!token)return false;
+  let r=await fetch(API+'?api=dashboard',{headers:{apikey:KEY,authorization:'Bearer '+token},cache:'no-store'});
+  if(r.ok)return true;
+  if(r.status!==401)return false;
   try{
-    const r=await fetch('/product-dashboard.html?build=p0-8-1-20260915-2',{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const html=await r.text();
-    document.open();
-    document.write(html);
-    document.close();
-  }catch(e){document.getElementById('err').textContent='加载失败：'+e.message+'。请刷新一次。'}
+    await refreshSession();
+    token=localStorage.getItem('temu_token')||'';
+    r=await fetch(API+'?api=dashboard',{headers:{apikey:KEY,authorization:'Bearer '+token},cache:'no-store'});
+    return r.ok;
+  }catch{return false}
+}
+function showLogin(msg='登录令牌已过期。请重新登录一次；本次升级后以后可自动续期。'){
+  q('sub').textContent='需要重新认证';
+  q('loginNotice').textContent=msg;
+  q('loginNotice').classList.remove('hide');
+  q('loginForm').classList.remove('hide');
+}
+function scheduleRefresh(){
+  if(refreshTimer)clearTimeout(refreshTimer);
+  const exp=Number(localStorage.getItem('temu_expires_at')||0);
+  if(!exp||!localStorage.getItem('temu_refresh_token'))return;
+  const wait=Math.max(60000,exp-Date.now()-5*60*1000);
+  refreshTimer=setTimeout(async()=>{
+    try{
+      await refreshSession();
+      scheduleRefresh();
+      const frame=document.getElementById('dashFrame');
+      if(frame)frame.contentWindow.location.reload();
+    }catch{
+      clearSession();
+      location.reload();
+    }
+  },wait);
+}
+function launch(){
+  q('gate').classList.add('hide');
+  q('frameWrap').classList.remove('hide');
+  q('frameWrap').innerHTML='<iframe id="dashFrame" src="/product-dashboard.html?build=p0-8-2-20260915" allow="clipboard-read; clipboard-write"></iframe>';
+  scheduleRefresh();
+}
+q('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  q('err').classList.add('hide');
+  q('loginBtn').disabled=true;
+  q('loginBtn').textContent='登录中…';
+  try{
+    await tokenRequest('password',{email:q('email').value,password:q('password').value});
+    launch();
+  }catch(err){
+    q('err').textContent=err.message||'登录失败';
+    q('err').classList.remove('hide');
+  }finally{
+    q('loginBtn').disabled=false;
+    q('loginBtn').textContent='登录并进入驾驶舱';
+  }
+});
+(async()=>{
+  q('sub').textContent='正在验证登录状态…';
+  const ok=await validateAccess();
+  if(ok)launch();
+  else showLogin();
 })();
 </script>
 </body>
