@@ -51,13 +51,48 @@ q('loginForm').onsubmit=async e=>{e.preventDefault();q('loginErr').classList.add
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pane').forEach(x=>x.classList.add('hide'));b.classList.add('on');q(b.dataset.pane).classList.remove('hide')});
 
 const aliases={
- product_id:['商品ID','商品id','产品ID','产品id','Product ID','product_id'],spu:['SPU','spu'],product_name:['商品名称','产品标题','商品标题','Product Name'],business_date:['日期','数据日期','business_date'],hour:['小时','时间','时段','hour'],impressions:['曝光（全域）','曝光量（全域）','全域曝光','曝光','impressions'],clicks:['点击（全域）','点击量（全域）','全域点击','点击','clicks'],cart:['加购（全域）','加购量（全域）','全域加购','加购','add_to_cart_count'],orders:['子订单（全域）','子订单量（全域）','子订单','订单','suborder_count'],units:['成交件数（全域）','件数（全域）','件数','unit_count'],sales:['销售额（全域）','全域销售额','销售额','gross_sales'],spend:['花费','推广花费','gross_ad_spend'],ctr:['点击率（全域）','全域点击率','CTR','ctr'],cvr:['转化率（全域）','全域转化率','CVR','cvr'],roas:['ROAS','roi','ROI','roas'],netSpend:['净花费','net_ad_spend'],netSales:['净销售额','net_sales'],netOrders:['净子订单','净订单','net_suborder_count'],netUnits:['净成交件数','net_unit_count'],netRoas:['净ROAS','net_roas'],cpa:['成交花费','每笔成交花费','cpa'],netCpa:['净成交花费','net_cpa']};
+ product_id:['商品ID','商品id','产品ID','产品id','Product ID','product_id'],
+ spu:['SPU ID','SPU','spu'],
+ business_date:['日期','数据日期','business_date'],
+ hour:['小时','时间','时段','hour'],
+ impressions:['曝光（全域）','曝光量（全域）','全域曝光','曝光','impressions'],
+ clicks:['点击（全域）','点击量（全域）','全域点击','点击','clicks'],
+ cart:['加入购物车数（全域）','加购（全域）','加购量（全域）','全域加购','加购','add_to_cart_count'],
+ orders:['子订单数（全域）','子订单（全域）','子订单量（全域）','子订单','订单','suborder_count'],
+ units:['件数（全域）','成交件数（全域）','件数','unit_count'],
+ sales:['申报价销售额（全域）','销售额（全域）','全域销售额','销售额','gross_sales'],
+ spend:['花费','推广花费','gross_ad_spend'],
+ ctr:['点击率（全域）','全域点击率','CTR','ctr'],
+ cvr:['转化率（全域）','全域转化率','CVR','cvr'],
+ roas:['投资回报率(ROAS)（全域）','投资回报率（ROAS）（全域）','ROAS（全域）','ROAS','roi','ROI','roas'],
+ feeRatio:['费比（全域）','fee_ratio'],
+ netSpend:['净花费','net_ad_spend'],
+ netSales:['净申报价销售额（全域）','净销售额（全域）','净销售额','net_sales'],
+ netOrders:['净子订单数（全域）','净子订单','净订单','net_suborder_count'],
+ netUnits:['净件数（全域）','净成交件数（全域）','net_unit_count'],
+ netRoas:['净投资回报率(ROAS)（全域）','净投资回报率（ROAS）（全域）','净ROAS','net_roas'],
+ netFeeRatio:['净费比（全域）','net_fee_ratio'],
+ cpa:['每笔成交花费（全域）','成交花费','每笔成交花费','cpa'],
+ netCpa:['净每笔成交花费（全域）','净成交花费','net_cpa']
+};
 function val(row,names){for(const k of names){if(row[k]!==undefined&&row[k]!==null&&row[k]!=='')return row[k]}return null}
+function titleVal(row){const candidates=[row['商品名称'],row['产品标题'],row['商品标题'],row['Product Name'],row['当前区域']].map(v=>v==null?'':String(v).trim()).filter(v=>v&&v!=='全部'&&v!=='美国');candidates.sort((a,b)=>b.length-a.length);return candidates[0]||null}
 function num(v,percent=false){if(v===null||v===undefined||v===''||v==='--')return null;let s=String(v).replace(/[,¥$￥]/g,'').trim();let p=s.endsWith('%');if(p)s=s.slice(0,-1);let x=Number(s);if(!Number.isFinite(x))return null;return (p||percent&&x>1)?x/100:x}
 function dateStr(v){if(!v)return null;if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==='number'&&window.XLSX?.SSF){const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}const s=String(v).trim();const m=s.match(/(20\d{2})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`:null}
-function hourNum(v){if(v===null||v===undefined)return null;const m=String(v).match(/(^|\D)(\d{1,2})(?::\d{2})?/);if(!m)return null;const h=Number(m[2]);return h>=0&&h<=23?h:null}
-async function parseOne(file){const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});let productId=null,spu=null,pname=null;const rows=[];for(const r of raw){const hr=hourNum(val(r,aliases.hour));const date=dateStr(val(r,aliases.business_date));const pid=val(r,aliases.product_id);if(pid&&!String(pid).includes('共'))productId=String(pid).trim();const sv=val(r,aliases.spu);if(sv)spu=String(sv).trim();const pn=val(r,aliases.product_name);if(pn&&String(pn).length>3)pname=String(pn).trim();if(hr===null||!date)continue;const impressions=num(val(r,aliases.impressions)),clicks=num(val(r,aliases.clicks)),orders=num(val(r,aliases.orders));rows.push({business_date:date,source_hour:hr,impressions,clicks,add_to_cart_count:num(val(r,aliases.cart)),suborder_count:orders,unit_count:num(val(r,aliases.units)),gross_sales:num(val(r,aliases.sales)),gross_ad_spend:num(val(r,aliases.spend)),ctr:num(val(r,aliases.ctr),true),cvr:num(val(r,aliases.cvr),true),roas:num(val(r,aliases.roas)),net_ad_spend:num(val(r,aliases.netSpend)),net_sales:num(val(r,aliases.netSales)),net_suborder_count:num(val(r,aliases.netOrders)),net_unit_count:num(val(r,aliases.netUnits)),net_roas:num(val(r,aliases.netRoas)),cpa:num(val(r,aliases.cpa)),net_cpa:num(val(r,aliases.netCpa)),raw_payload:r})}if(!productId){const m=file.name.match(/(60\d{13,})/);if(m)productId=m[1]}return {file_name:file.name,product_id:productId,spu,product_name:pname,rows}}
-q('parseBtn').onclick=async()=>{try{const fs=[...q('files').files];if(!fs.length)throw new Error('请先选择Excel文件');parsedFiles=[];for(const f of fs)parsedFiles.push(await parseOne(f));q('preview').textContent=parsedFiles.map(x=>`${x.file_name}\n商品ID: ${x.product_id||'未识别'}  SPU: ${x.spu||'-'}\n小时行: ${x.rows.length}  日期: ${[...new Set(x.rows.map(r=>r.business_date))].join(', ')}`).join('\n\n');q('uploadMsg').innerHTML='<div class="ok">解析完成，请核对后点击“确认入库”。</div>'}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
+function hourNum(v){if(v===null||v===undefined||v==='')return null;if(v instanceof Date&&!isNaN(v))return v.getHours();const s=String(v).trim();let m=s.match(/(?:T|\s)(\d{1,2}):(\d{2})(?::\d{2})?\s*$/);if(m){const h=Number(m[1]);return h>=0&&h<=23?h:null}m=s.match(/^(\d{1,2})(?::\d{2})?(?:\s*[-~至].*)?$/);if(m){const h=Number(m[1]);return h>=0&&h<=23?h:null}return null}
+async function parseOne(file){
+ const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});let productId=null,spu=null,pname=null;const rows=[];
+ for(const r of raw){
+  const dtRaw=val(r,aliases.business_date);const date=dateStr(dtRaw);const hr=hourNum(val(r,aliases.hour)) ?? hourNum(dtRaw);
+  const pid=val(r,aliases.product_id);if(pid&&!String(pid).includes('共'))productId=String(pid).trim();const sv=val(r,aliases.spu);if(sv)spu=String(sv).trim();const pn=titleVal(r);if(pn&&pn.length>3)pname=pn;
+  if(hr===null||!date)continue;
+  const impressions=num(val(r,aliases.impressions)),clicks=num(val(r,aliases.clicks)),orders=num(val(r,aliases.orders));
+  rows.push({business_date:date,source_hour:hr,impressions,clicks,add_to_cart_count:num(val(r,aliases.cart)),suborder_count:orders,unit_count:num(val(r,aliases.units)),gross_sales:num(val(r,aliases.sales)),gross_ad_spend:num(val(r,aliases.spend)),ctr:num(val(r,aliases.ctr),true),cvr:num(val(r,aliases.cvr),true),roas:num(val(r,aliases.roas)),fee_ratio:num(val(r,aliases.feeRatio),true),net_ad_spend:num(val(r,aliases.netSpend)),net_sales:num(val(r,aliases.netSales)),net_suborder_count:num(val(r,aliases.netOrders)),net_unit_count:num(val(r,aliases.netUnits)),net_roas:num(val(r,aliases.netRoas)),net_fee_ratio:num(val(r,aliases.netFeeRatio),true),cpa:num(val(r,aliases.cpa)),net_cpa:num(val(r,aliases.netCpa)),raw_payload:r});
+ }
+ if(!productId){const m=file.name.match(/(60\d{13,})/);if(m)productId=m[1]}
+ return {file_name:file.name,product_id:productId,spu,product_name:pname,rows};
+}
+q('parseBtn').onclick=async()=>{try{const fs=[...q('files').files];if(!fs.length)throw new Error('请先选择Excel文件');parsedFiles=[];for(const f of fs)parsedFiles.push(await parseOne(f));q('preview').textContent=parsedFiles.map(x=>`${x.file_name}\n商品ID: ${x.product_id||'未识别'}  SPU: ${x.spu||'-'}\n商品: ${x.product_name||'-'}\n小时行: ${x.rows.length}  日期: ${[...new Set(x.rows.map(r=>r.business_date))].join(', ')}\n小时范围: ${x.rows.length?Math.min(...x.rows.map(r=>r.source_hour))+'-'+Math.max(...x.rows.map(r=>r.source_hour)):'-'}`).join('\n\n');q('uploadMsg').innerHTML='<div class="ok">解析完成，请核对后点击“确认入库”。</div>'}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
 q('uploadBtn').onclick=async()=>{try{if(!parsedFiles.length)await q('parseBtn').onclick();if(parsedFiles.some(x=>!x.product_id||x.rows.length===0))throw new Error('存在未识别商品ID或没有小时数据的文件，请先检查解析预览');q('uploadMsg').innerHTML='<div class="notice">正在入库并重跑诊断...</div>';const d=await api('upload-hourly',{method:'POST',body:JSON.stringify({store_id:q('uploadStore').value,files:parsedFiles})});q('uploadMsg').innerHTML=`<div class="ok">入库成功：${d.files}个文件，${d.rows}条小时数据；日期 ${d.dates.join(', ')}</div>`;await refresh()}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
 function eventValue(){const t=q('eventType').value,v=q('eventValue').value.trim(),x=q('eventExtra').value.trim();if(t==='ROI_TARGET'||t==='DAILY_BUDGET')return {value:Number(v)};if(t==='FRONT_PRICE')return {value:Number(v),currency:x||'USD',is_final_after_coupon:true};if(t==='CAMPAIGN_PRICE')return {value:Number(v),name:x||null,status:'ON'};if(t==='COUPON')return {enabled:/^(on|开|开启|true|1)$/i.test(v),amount:x?Number(x):null,type:'amount'};if(t==='INVENTORY_STATUS')return {value:v,available_qty:x?Number(x):null};if(t==='SIZE_STOCKOUT')return {value:v,core_size_stockout:/soldout|售罄|缺货|oos/i.test(v)};return {value:v}}
 q('saveState').onclick=async()=>{try{if(!q('stateProduct').value.trim())throw new Error('请填写商品ID');q('stateMsg').innerHTML='<div class="notice">正在保存...</div>';const d=await api('state-change',{method:'POST',body:JSON.stringify({store_id:q('stateStore').value,product_id:q('stateProduct').value.trim(),event_type:q('eventType').value,new_value:eventValue(),variant_key:q('variantKey').value.trim()||'__ALL__',size_key:q('sizeKey').value.trim()||null,effective_at:q('effectiveAt').value||null,reason:q('reason').value.trim()||null})});q('stateMsg').innerHTML=`<div class="ok">保存成功。系统已记录旧值并更新当前状态。事件ID：${esc(d.event_id)}</div>`}catch(e){q('stateMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
