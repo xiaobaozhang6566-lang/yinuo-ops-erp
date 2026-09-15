@@ -6,9 +6,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>TEMU 美区 商品经营驾驶舱 P0-8.4</title>
+<title>TEMU 美区 商品经营驾驶舱 P0-8.5</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.center{min-height:100%;display:grid;place-items:center;padding:20px}.box{width:min(440px,100%);background:#fff;border:1px solid #e4e9f1;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(25,40,65,.06)}h1{font-size:24px;margin:0 0 8px}.muted{color:#718096;font-size:14px}.notice{margin-top:14px;padding:10px 12px;border-radius:10px;background:#eef6ff;border:1px solid #cfe4ff;color:#34527a;font-size:13px}.err{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff1f2;color:#b42318;font-size:13px}.form{display:grid;gap:10px;margin-top:18px}input,button{font:inherit;padding:11px 12px;border-radius:10px}input{border:1px solid #d7dde8;background:#fff}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.hide{display:none!important}iframe{display:block;border:0;width:100%;height:100vh;background:#f4f7fb}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.center{min-height:100%;display:grid;place-items:center;padding:20px}.box{width:min(440px,100%);background:#fff;border:1px solid #e4e9f1;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(25,40,65,.06)}h1{font-size:24px;margin:0 0 8px}.muted{color:#718096;font-size:14px}.notice{margin-top:14px;padding:10px 12px;border-radius:10px;background:#eef6ff;border:1px solid #cfe4ff;color:#34527a;font-size:13px}.err{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff1f2;color:#b42318;font-size:13px}.form{display:grid;gap:10px;margin-top:18px}input,button{font:inherit;padding:11px 12px;border-radius:10px}input{border:1px solid #d7dde8;background:#fff}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.hide{display:none!important}.shell{height:100vh;display:flex;flex-direction:column;background:#f4f7fb}.shellnav{height:58px;flex:0 0 58px;display:flex;justify-content:space-between;align-items:center;gap:14px;padding:0 18px;background:#fff;border-bottom:1px solid #e4e9f1;box-shadow:0 2px 10px rgba(25,40,65,.04)}.navleft{display:flex;align-items:center;gap:14px}.brand{font-weight:800;font-size:17px;white-space:nowrap}.navtabs{display:flex;gap:8px}.navtab{background:#e9edf4;color:#172033;padding:9px 14px}.navtab.active{background:#111827;color:#fff}.navback{background:#e9edf4;color:#172033;padding:9px 14px}.framebox{flex:1;min-height:0}.framebox iframe{display:block;border:0;width:100%;height:100%;background:#f4f7fb}@media(max-width:700px){.shellnav{height:auto;min-height:58px;padding:8px 10px;align-items:flex-start}.navleft{align-items:flex-start;flex-direction:column;gap:6px}.brand{font-size:14px}.navtab,.navback{padding:8px 10px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -68,7 +68,7 @@ function translateDocument(doc){
   nodes.forEach(n=>{const t=translateText(n.nodeValue);if(t!==n.nodeValue)n.nodeValue=t});
   const title=doc.querySelector('.title');if(title&&/[A-Za-z]{3,}/.test(title.textContent||''))title.textContent='商品经营概览';
   doc.querySelectorAll('input[placeholder]').forEach(el=>el.setAttribute('placeholder',translateText(el.getAttribute('placeholder'))));
-  const back=[...doc.querySelectorAll('button')].find(b=>(b.textContent||'').includes('返回P0主系统'));if(back)back.onclick=()=>{window.top.location.href='/';};
+  const back=[...doc.querySelectorAll('button')].find(b=>(b.textContent||'').includes('返回P0主系统'));if(back)back.style.display='none';
 }
 function ymdAdd(s,n){const [y,m,d]=s.split('-').map(Number),x=new Date(Date.UTC(y,m-1,d+n));return `${x.getUTCFullYear()}-${String(x.getUTCMonth()+1).padStart(2,'0')}-${String(x.getUTCDate()).padStart(2,'0')}`}
 function pct(a,b){a=Number(a);b=Number(b);return Number.isFinite(a)&&Number.isFinite(b)&&b!==0?(a-b)/b:null}
@@ -124,8 +124,22 @@ function installChineseUI(frame){
   const apply=()=>{try{const doc=frame.contentDocument;if(!doc||!doc.body)return;translateDocument(doc);installTimeMode(frame);const ob=new MutationObserver(()=>translateDocument(doc));ob.observe(doc.body,{childList:true,subtree:true,characterData:true})}catch(e){console.warn('中文界面处理失败',e)}};
   frame.addEventListener('load',apply,{once:false});setTimeout(apply,300);
 }
+function switchModule(module){
+  const frame=q('dashFrame');if(!frame)return;
+  q('tabBusiness').classList.toggle('active',module==='business');
+  q('tabTrend').classList.toggle('active',module==='trend');
+  if(module==='trend'){
+    frame.src='/trend.html?embedded=1&build=p0-8-5';
+  }else{
+    frame.src='/product-dashboard.html?build=p0-8-5-integrated-20260915';
+  }
+}
 function launch(){
-  q('gate').classList.add('hide');q('frameWrap').classList.remove('hide');q('frameWrap').innerHTML='<iframe id="dashFrame" src="/product-dashboard.html?build=p0-8-4-daycompare-20260915" allow="clipboard-read; clipboard-write"></iframe>';const frame=document.getElementById('dashFrame');installChineseUI(frame);scheduleRefresh();
+  q('gate').classList.add('hide');q('frameWrap').classList.remove('hide');
+  q('frameWrap').innerHTML=`<div class="shell"><div class="shellnav"><div class="navleft"><div class="brand">TEMU 美区 · 商品经营驾驶舱 <span class="muted">P0-8.5</span></div><div class="navtabs"><button id="tabBusiness" class="navtab active">商品经营</button><button id="tabTrend" class="navtab">商品趋势</button></div></div><button id="backMain" class="navback">返回P0主系统</button></div><div class="framebox"><iframe id="dashFrame" src="/product-dashboard.html?build=p0-8-5-integrated-20260915" allow="clipboard-read; clipboard-write"></iframe></div></div>`;
+  const frame=q('dashFrame');installChineseUI(frame);
+  q('tabBusiness').onclick=()=>switchModule('business');q('tabTrend').onclick=()=>switchModule('trend');q('backMain').onclick=()=>location.href='/';
+  scheduleRefresh();
 }
 q('loginForm').addEventListener('submit',async e=>{e.preventDefault();q('err').classList.add('hide');q('loginBtn').disabled=true;q('loginBtn').textContent='登录中…';try{await tokenRequest('password',{email:q('email').value,password:q('password').value});launch()}catch(err){q('err').textContent=err.message||'登录失败';q('err').classList.remove('hide')}finally{q('loginBtn').disabled=false;q('loginBtn').textContent='登录并进入驾驶舱'}});
 (async()=>{q('sub').textContent='正在验证登录状态…';const ok=await validateAccess();if(ok)launch();else showLogin()})();
