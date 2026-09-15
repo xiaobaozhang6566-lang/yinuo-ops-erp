@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>TEMU US 商品经营驾驶舱 P0-8.2</title>
+<title>TEMU 美区 商品经营驾驶舱 P0-8.3</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.center{min-height:100%;display:grid;place-items:center;padding:20px}.box{width:min(440px,100%);background:#fff;border:1px solid #e4e9f1;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(25,40,65,.06)}h1{font-size:24px;margin:0 0 8px}.muted{color:#718096;font-size:14px}.notice{margin-top:14px;padding:10px 12px;border-radius:10px;background:#eef6ff;border:1px solid #cfe4ff;color:#34527a;font-size:13px}.err{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff1f2;color:#b42318;font-size:13px}.form{display:grid;gap:10px;margin-top:18px}input,button{font:inherit;padding:11px 12px;border-radius:10px}input{border:1px solid #d7dde8;background:#fff}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.hide{display:none!important}iframe{display:block;border:0;width:100%;height:100vh;background:#f4f7fb}
 </style>
@@ -14,9 +14,9 @@
 <body>
 <div id="gate" class="center">
   <section class="box">
-    <h1>TEMU US 商品经营驾驶舱</h1>
+    <h1>TEMU 美区 商品经营驾驶舱</h1>
     <div id="sub" class="muted">正在验证登录状态…</div>
-    <div id="loginNotice" class="notice hide">登录令牌已过期。请重新登录一次；本次升级后会保存 refresh token，后续可自动续期。</div>
+    <div id="loginNotice" class="notice hide">登录凭证已过期。请重新登录一次；系统会保存续期凭证，后续自动续期。</div>
     <form id="loginForm" class="form hide">
       <input id="email" type="email" placeholder="邮箱" required>
       <input id="password" type="password" placeholder="密码" required>
@@ -69,7 +69,7 @@ async function validateAccess(){
     return r.ok;
   }catch{return false}
 }
-function showLogin(msg='登录令牌已过期。请重新登录一次；本次升级后以后可自动续期。'){
+function showLogin(msg='登录凭证已过期。请重新登录一次；之后系统会自动续期。'){
   q('sub').textContent='需要重新认证';
   q('loginNotice').textContent=msg;
   q('loginNotice').classList.remove('hide');
@@ -92,10 +92,87 @@ function scheduleRefresh(){
     }
   },wait);
 }
+
+const DIAGNOSIS_MAP={
+  POST_CART_CONVERSION_WEAKNESS:'加购后成交偏弱',
+  SCALE_CANDIDATE:'可放量候选',
+  HOLD_OBSERVE:'继续观察',
+  LOW_SAMPLE:'样本不足',
+  TRAFFIC_DILUTION:'流量稀释',
+  CONVERSION_PROBLEM:'转化异常',
+  CLICK_PROBLEM:'点击异常',
+  TRAFFIC_VOLUME_DECLINE:'流量规模下降',
+  DATA_ISSUE:'数据异常'
+};
+const EXACT_MAP={
+  CRITICAL:'严重异常',WARNING:'警告',INFO:'提示',WATCH:'观察',
+  HIGH:'高',MEDIUM:'中',LOW:'低',
+  RUNNING:'进行中',COMPLETED:'已完成',OPEN:'待处理',OBSERVING:'观察中',
+  CONTAMINATED:'实验受污染',CLEAN:'单变量干净',
+  NORMAL:'正常',PARTIAL:'部分售罄',SOLDOUT:'已售罄',OOS:'缺货',
+  ORDERS:'订单',IMPRESSIONS:'曝光',CLICKS:'点击',SALES:'销售额',
+  WIN:'有效',LOSS:'失败',NO_EFFECT:'无明显效果',INCONCLUSIVE:'数据不足'
+};
+function translateText(text){
+  let s=String(text||'');
+  for(const [k,v] of Object.entries(DIAGNOSIS_MAP))s=s.split(k).join(v);
+  for(const [k,v] of Object.entries(EXACT_MAP))s=s.replace(new RegExp('\\b'+k+'\\b','g'),v);
+  s=s.replace(/Priority\s*/g,'处理优先级 ')
+     .replace(/CLEAN\s*单变量/g,'单变量干净')
+     .replace(/ROI目标/g,'投产比目标')
+     .replace(/ROI实验/g,'投产比实验')
+     .replace(/ROI\s*(?=\d|→|:|：|$)/g,'投产比目标 ')
+     .replace(/净ROAS/g,'净投产比')
+     .replace(/ROAS/g,'广告投产比')
+     .replace(/CVR/g,'转化率')
+     .replace(/CTR/g,'点击率')
+     .replace(/\bR\s*(?=\d)/g,'投产比 ')
+     .replace(/AI经营结论/g,'智能经营结论')
+     .replace(/AI诊断/g,'智能诊断')
+     .replace(/AI识别/g,'智能系统识别')
+     .replace(/TEMU US/g,'TEMU 美区')
+     .replace(/\bUS\b/g,'美区')
+     .replace(/SPU/g,'款式编码')
+     .replace(/Manager/g,'管理员')
+     .replace(/Operator/g,'运营人员');
+  return s;
+}
+function translateDocument(doc){
+  if(!doc||!doc.body)return;
+  doc.title='TEMU 美区 商品经营驾驶舱';
+  const walker=doc.createTreeWalker(doc.body,NodeFilter.SHOW_TEXT);
+  const nodes=[];let node;
+  while(node=walker.nextNode()){
+    const p=node.parentElement;
+    if(!p||['SCRIPT','STYLE','NOSCRIPT','TEXTAREA'].includes(p.tagName))continue;
+    nodes.push(node);
+  }
+  nodes.forEach(n=>{const t=translateText(n.nodeValue);if(t!==n.nodeValue)n.nodeValue=t});
+  const title=doc.querySelector('.title');
+  if(title&&/[A-Za-z]{3,}/.test(title.textContent||''))title.textContent='商品经营概览';
+  doc.querySelectorAll('input[placeholder]').forEach(el=>el.setAttribute('placeholder',translateText(el.getAttribute('placeholder'))));
+  const back=[...doc.querySelectorAll('button')].find(b=>(b.textContent||'').includes('返回P0主系统'));
+  if(back)back.onclick=()=>{window.top.location.href='/';};
+}
+function installChineseUI(frame){
+  const apply=()=>{
+    try{
+      const doc=frame.contentDocument;
+      if(!doc||!doc.body)return;
+      translateDocument(doc);
+      const ob=new MutationObserver(()=>translateDocument(doc));
+      ob.observe(doc.body,{childList:true,subtree:true,characterData:true});
+    }catch(e){console.warn('中文界面处理失败',e)}
+  };
+  frame.addEventListener('load',apply,{once:false});
+  setTimeout(apply,300);
+}
 function launch(){
   q('gate').classList.add('hide');
   q('frameWrap').classList.remove('hide');
-  q('frameWrap').innerHTML='<iframe id="dashFrame" src="/product-dashboard.html?build=p0-8-2-20260915" allow="clipboard-read; clipboard-write"></iframe>';
+  q('frameWrap').innerHTML='<iframe id="dashFrame" src="/product-dashboard.html?build=p0-8-3-zh-20260915" allow="clipboard-read; clipboard-write"></iframe>';
+  const frame=document.getElementById('dashFrame');
+  installChineseUI(frame);
   scheduleRefresh();
 }
 q('loginForm').addEventListener('submit',async e=>{
