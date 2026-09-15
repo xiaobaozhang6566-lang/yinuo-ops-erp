@@ -4,68 +4,64 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>亦诺跨境 · TEMU 商品智能运营测试</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.box,.card{background:#fff;border:1px solid #e4e9f1;border-radius:16px;box-shadow:0 8px 28px rgba(25,40,65,.06)}.box{width:min(430px,100%);padding:28px}.box h1{margin:0 0 8px;font-size:25px}.muted{color:#718096;font-size:14px}.form{display:grid;gap:10px;margin-top:18px}input,button{font:inherit;padding:12px;border-radius:10px}input{border:1px solid #d7dde8}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.app{max-width:1200px;margin:auto;padding:26px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}.card{padding:18px}.kpi{font-size:30px;font-weight:750;margin-top:5px}.pill{background:#eaf0ff;color:#3452a4;padding:6px 10px;border-radius:999px;font-size:13px}.section{margin-top:14px}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:top}.warning{color:#c27a00}.critical{color:#bd2020}.hide{display:none}.notice{padding:10px 12px;background:#eef6ff;border:1px solid #cfe4ff;border-radius:10px;color:#34527a;font-size:13px;margin-top:12px}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.app{padding:16px}}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.hide{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.box,.card{background:#fff;border:1px solid #e4e9f1;border-radius:16px;box-shadow:0 8px 28px rgba(25,40,65,.06)}.box{width:min(440px,100%);padding:28px}.muted{color:#718096;font-size:14px}.notice,.ok,.err{padding:10px 12px;border-radius:10px;font-size:13px}.notice{background:#eef6ff;border:1px solid #cfe4ff;color:#34527a}.ok{background:#ecfdf5;color:#047857}.err{background:#fff1f2;color:#b42318}.form{display:grid;gap:10px;margin-top:18px}input,button,select,textarea{font:inherit;padding:11px 12px;border-radius:10px}input,select,textarea{border:1px solid #d7dde8;background:#fff}textarea{min-height:84px;resize:vertical}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.secondary{background:#e9edf4;color:#172033}.app{max-width:1380px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab{background:#e9edf4;color:#172033}.tab.on{background:#111827;color:#fff}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.card{padding:18px}.kpi{font-size:30px;font-weight:760;margin-top:5px}.pill{background:#eaf0ff;color:#3452a4;padding:6px 10px;border-radius:999px;font-size:13px}.section{margin-top:14px}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:top}.warning{color:#c27a00}.critical{color:#bd2020}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:6px}.field label{font-size:13px;font-weight:700}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.small{font-size:12px}.pre{white-space:pre-wrap;background:#f8fafc;border:1px solid #e7ebf2;border-radius:10px;padding:12px;font-size:12px;max-height:260px;overflow:auto}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#f1f5f9;font-size:12px}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.twocol{grid-template-columns:1fr}.app{padding:14px}}
   </style>
 </head>
 <body>
-<main id="login" class="login">
-  <section class="box">
-    <h1>亦诺跨境 · TEMU 商品智能运营</h1>
-    <div class="muted">独立测试版 P0-3</div>
-    <div class="notice">使用现有运营任务 ERP 的公司账号登录。测试通过后再合并进正式 ERP。</div>
-    <form id="f" class="form">
-      <input id="e" type="email" placeholder="邮箱" required />
-      <input id="p" type="password" placeholder="密码" required />
-      <button type="submit">登录</button>
-    </form>
-    <p id="err" class="critical"></p>
-  </section>
-</main>
+<main id="login" class="login"><section class="box"><h1 style="margin:0 0 8px">亦诺跨境 · TEMU 商品智能运营</h1><div class="muted">独立测试版 P0-4</div><div class="notice" style="margin-top:14px">使用现有运营任务 ERP 的公司账号登录。测试通过后再合并进正式 ERP。</div><form id="loginForm" class="form"><input id="email" type="email" placeholder="邮箱" required><input id="password" type="password" placeholder="密码" required><button>登录</button></form><div id="loginErr" class="err hide" style="margin-top:12px"></div></section></main>
+
 <main id="app" class="app hide">
-  <div class="top">
-    <div>
-      <h1 style="margin:0">TEMU US 商品智能运营</h1>
-      <div class="muted">P0-3 · 数据 → 诊断 → 动作 → 实验 → 验证</div>
+  <div class="top"><div><h1 style="margin:0">TEMU US 商品智能运营</h1><div class="muted">P0-4 · 数据 → 诊断 → 状态变更 → 实验 → 验证</div></div><div><span id="role" class="pill"></span> <button id="logout" class="secondary">退出</button></div></div>
+  <div class="tabs"><button class="tab on" data-pane="overview">经营总览</button><button class="tab" data-pane="upload">数据上传</button><button class="tab" data-pane="state">商品状态变更</button></div>
+
+  <section id="overview" class="pane">
+    <div class="grid"><div class="card"><div class="muted">已纳管商品</div><div id="pc" class="kpi">0</div></div><div class="card"><div class="muted">AI诊断</div><div id="dc" class="kpi">0</div></div><div class="card"><div class="muted">高优先级</div><div id="hc" class="kpi">0</div></div><div class="card"><div class="muted">可访问店铺</div><div id="sc" class="kpi">0</div></div><div class="card"><div class="muted">小时数据</div><div id="hrc" class="kpi">0</div><div id="latestDate" class="small muted"></div></div></div>
+    <section class="card section"><h2>AI诊断 / 当前优先级</h2><div id="tbl"></div></section>
+  </section>
+
+  <section id="upload" class="pane hide">
+    <div class="twocol">
+      <section class="card"><h2 style="margin-top:0">TEMU 小时数据上传</h2><div class="notice">先选店铺，再上传 TEMU 单商品小时级 Excel。系统自动排除“共24项”等汇总行，`--`按空值处理，并按商品+日期+小时去重。</div><div class="form"><div class="field"><label>店铺</label><select id="uploadStore"></select></div><div class="field"><label>Excel 文件</label><input id="files" type="file" accept=".xlsx,.xls,.csv" multiple></div><div class="actions"><button id="parseBtn" type="button" class="secondary">解析预览</button><button id="uploadBtn" type="button">确认入库</button></div><div id="uploadMsg"></div></div></section>
+      <section class="card"><h2 style="margin-top:0">解析预览</h2><div id="preview" class="pre muted">尚未选择文件。</div></section>
     </div>
-    <div><span id="role" class="pill"></span> <button id="out" style="background:#e9edf4;color:#172033">退出</button></div>
-  </div>
-  <div class="grid">
-    <div class="card"><div class="muted">已纳管商品</div><div id="pc" class="kpi">0</div></div>
-    <div class="card"><div class="muted">AI诊断</div><div id="dc" class="kpi">0</div></div>
-    <div class="card"><div class="muted">高优先级</div><div id="hc" class="kpi">0</div></div>
-    <div class="card"><div class="muted">可访问店铺</div><div id="sc" class="kpi">0</div></div>
-  </div>
-  <section class="card section">
-    <h2>AI诊断 / 当前优先级</h2>
-    <div id="tbl"></div>
+  </section>
+
+  <section id="state" class="pane hide">
+    <div class="twocol">
+      <section class="card"><h2 style="margin-top:0">记录商品经营变化</h2><div class="notice">只在发生变化时记录。保存后系统会保留旧值、更新当前状态；ROI/价格/优惠券/预算/主图变化会自动建立实验。</div><div class="form"><div class="field"><label>店铺</label><select id="stateStore"></select></div><div class="field"><label>商品 ID</label><input id="stateProduct" placeholder="例如 601103263641724"></div><div class="field"><label>变化类型</label><select id="eventType"><option value="ROI_TARGET">ROI目标</option><option value="FRONT_PRICE">前端售价</option><option value="CAMPAIGN_PRICE">活动价格</option><option value="COUPON">优惠券</option><option value="DAILY_BUDGET">广告预算</option><option value="INVENTORY_STATUS">库存状态</option><option value="SIZE_STOCKOUT">尺码售罄</option><option value="MAIN_IMAGE">主图版本</option><option value="CAMPAIGN_STATUS">活动状态</option></select></div><div class="field"><label>新值</label><input id="eventValue" placeholder="例如 6.5 / 17.45 / M,L售罄"></div><div class="field"><label>附加信息</label><input id="eventExtra" placeholder="价格币种USD；优惠券金额；可用库存数量等"></div><div class="field"><label>变体/颜色（可选）</label><input id="variantKey" placeholder="例如 黑色；不填=整商品"></div><div class="field"><label>尺码（仅售罄事件可选）</label><input id="sizeKey" placeholder="例如 M"></div><div class="field"><label>生效时间</label><input id="effectiveAt" type="datetime-local"></div><div class="field"><label>原因/备注</label><textarea id="reason" placeholder="例如 ROI 7→6.5 测试流量"></textarea></div><button id="saveState" type="button">保存变更</button><div id="stateMsg"></div></div></section>
+      <section class="card"><h2 style="margin-top:0">填写规则</h2><div class="pre">ROI目标：新值填 6.5\n前端售价：新值填 17.45；附加信息可填 USD\n活动价格：新值填价格；附加信息可填活动名称\n优惠券：新值填 ON / OFF；附加信息填金额，例如 3\n广告预算：新值填金额\n库存状态：新值填 NORMAL / LOW / OOS；附加信息填可用数量\n尺码售罄：新值填 SOLDOUT / NORMAL；尺码字段填 M/L/XL\n主图版本：新值填 V4\n活动状态：新值填 ON / OFF\n\n前端售价若已经是消费者看到的券后最终价，系统不会再次扣减优惠券。</div></section>
+    </div>
   </section>
 </main>
 <script>
 const SUPABASE_URL='https://iscadepgzegrvcqzosso.supabase.co';
 const KEY='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
-const API=SUPABASE_URL+'/functions/v1/temu-ops?api=dashboard';
-let tok=localStorage.getItem('temu_token')||'';
+const API=SUPABASE_URL+'/functions/v1/temu-ops';
+let tok=localStorage.getItem('temu_token')||'', dash=null, parsedFiles=[];
 const q=id=>document.getElementById(id);
-async function login(email,password){
-  const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'content-type':'application/json','apikey':KEY},body:JSON.stringify({email,password})});
-  const d=await r.json(); if(!r.ok) throw new Error(d.error_description||d.msg||'登录失败');
-  tok=d.access_token; localStorage.setItem('temu_token',tok);
-}
-async function refresh(){
-  const r=await fetch(API,{headers:{authorization:'Bearer '+tok,'apikey':KEY}});
-  if(r.status===401){logout();return}
-  const d=await r.json(); if(!r.ok) throw new Error(d.error||'读取失败');
-  q('role').textContent=d.member?.role==='manager'?'Manager':'Operator';
-  q('pc').textContent=d.product_count||0; q('dc').textContent=(d.diagnostics||[]).length;
-  q('hc').textContent=(d.diagnostics||[]).filter(x=>Number(x.action_priority)>=80).length; q('sc').textContent=(d.stores||[]).length;
-  const ds=d.diagnostics||[];
-  q('tbl').innerHTML=ds.length?'<div class="tablewrap"><table class="table"><thead><tr><th>日期</th><th>商品</th><th>诊断</th><th>等级</th><th>置信度</th><th>Priority</th><th>机会损失</th><th>建议</th></tr></thead><tbody>'+ds.map(x=>'<tr><td>'+x.business_date+'</td><td>'+x.product_id+'</td><td>'+x.diagnosis_type+'</td><td class="'+(x.severity==='CRITICAL'?'critical':x.severity==='WARNING'?'warning':'')+'">'+x.severity+'</td><td>'+(x.confidence_band||'-')+'</td><td>'+(x.action_priority??'-')+'</td><td>'+Number(x.opportunity_loss_orders||0).toFixed(1)+'单</td><td>'+(x.recommended_action||'-')+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">暂无可用诊断。数据上传与每日自动扫描后会显示在这里。</p>';
-  q('login').classList.add('hide'); q('app').classList.remove('hide');
-}
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+async function api(path,opt={}){const r=await fetch(API+'?api='+path,{...opt,headers:{'content-type':'application/json','apikey':KEY,'authorization':'Bearer '+tok,...(opt.headers||{})}});const d=await r.json();if(!r.ok)throw new Error(d.error||'请求失败');return d}
+async function login(email,password){const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'content-type':'application/json','apikey':KEY},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw new Error(d.error_description||d.msg||'登录失败');tok=d.access_token;localStorage.setItem('temu_token',tok)}
+function storesOptions(stores){return (stores||[]).map(s=>`<option value="${esc(s.id)}">${esc(s.store_name)}</option>`).join('')}
+async function refresh(){dash=await api('dashboard');q('role').textContent=dash.member?.role==='manager'?'Manager':'Operator';q('pc').textContent=dash.product_count||0;q('dc').textContent=(dash.diagnostics||[]).length;q('hc').textContent=(dash.diagnostics||[]).filter(x=>Number(x.action_priority)>=80).length;q('sc').textContent=(dash.stores||[]).length;q('hrc').textContent=dash.hourly_rows||0;q('latestDate').textContent=dash.latest_hourly_date?'最新 '+dash.latest_hourly_date:'暂无小时数据';q('uploadStore').innerHTML=storesOptions(dash.stores);q('stateStore').innerHTML=storesOptions(dash.stores);const ds=dash.diagnostics||[];q('tbl').innerHTML=ds.length?'<div class="tablewrap"><table class="table"><thead><tr><th>日期</th><th>商品</th><th>诊断</th><th>等级</th><th>置信度</th><th>Priority</th><th>机会损失</th><th>建议</th></tr></thead><tbody>'+ds.map(x=>`<tr><td>${esc(x.business_date)}</td><td>${esc(x.product_id)}</td><td>${esc(x.diagnosis_type)}</td><td class="${x.severity==='CRITICAL'?'critical':x.severity==='WARNING'?'warning':''}">${esc(x.severity)}</td><td>${esc(x.confidence_band||'-')}</td><td>${esc(x.action_priority??'-')}</td><td>${Number(x.opportunity_loss_orders||0).toFixed(1)}单</td><td>${esc(x.recommended_action||'-')}</td></tr>`).join('')+'</tbody></table></div>':'<p class="muted">暂无诊断。</p>';q('login').classList.add('hide');q('app').classList.remove('hide')}
 function logout(){tok='';localStorage.removeItem('temu_token');q('app').classList.add('hide');q('login').classList.remove('hide')}
-q('f').onsubmit=async ev=>{ev.preventDefault();q('err').textContent='';try{await login(q('e').value,q('p').value);await refresh()}catch(x){q('err').textContent=x.message}};
-q('out').onclick=logout; if(tok)refresh().catch(()=>logout());
+q('loginForm').onsubmit=async e=>{e.preventDefault();q('loginErr').classList.add('hide');try{await login(q('email').value,q('password').value);await refresh()}catch(x){q('loginErr').textContent=x.message;q('loginErr').classList.remove('hide')}};q('logout').onclick=logout;
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pane').forEach(x=>x.classList.add('hide'));b.classList.add('on');q(b.dataset.pane).classList.remove('hide')});
+
+const aliases={
+ product_id:['商品ID','商品id','产品ID','产品id','Product ID','product_id'],spu:['SPU','spu'],product_name:['商品名称','产品标题','商品标题','Product Name'],business_date:['日期','数据日期','business_date'],hour:['小时','时间','时段','hour'],impressions:['曝光（全域）','曝光量（全域）','全域曝光','曝光','impressions'],clicks:['点击（全域）','点击量（全域）','全域点击','点击','clicks'],cart:['加购（全域）','加购量（全域）','全域加购','加购','add_to_cart_count'],orders:['子订单（全域）','子订单量（全域）','子订单','订单','suborder_count'],units:['成交件数（全域）','件数（全域）','件数','unit_count'],sales:['销售额（全域）','全域销售额','销售额','gross_sales'],spend:['花费','推广花费','gross_ad_spend'],ctr:['点击率（全域）','全域点击率','CTR','ctr'],cvr:['转化率（全域）','全域转化率','CVR','cvr'],roas:['ROAS','roi','ROI','roas'],netSpend:['净花费','net_ad_spend'],netSales:['净销售额','net_sales'],netOrders:['净子订单','净订单','net_suborder_count'],netUnits:['净成交件数','net_unit_count'],netRoas:['净ROAS','net_roas'],cpa:['成交花费','每笔成交花费','cpa'],netCpa:['净成交花费','net_cpa']};
+function val(row,names){for(const k of names){if(row[k]!==undefined&&row[k]!==null&&row[k]!=='')return row[k]}return null}
+function num(v,percent=false){if(v===null||v===undefined||v===''||v==='--')return null;let s=String(v).replace(/[,¥$￥]/g,'').trim();let p=s.endsWith('%');if(p)s=s.slice(0,-1);let x=Number(s);if(!Number.isFinite(x))return null;return (p||percent&&x>1)?x/100:x}
+function dateStr(v){if(!v)return null;if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==='number'&&window.XLSX?.SSF){const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}const s=String(v).trim();const m=s.match(/(20\d{2})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`:null}
+function hourNum(v){if(v===null||v===undefined)return null;const m=String(v).match(/(^|\D)(\d{1,2})(?::\d{2})?/);if(!m)return null;const h=Number(m[2]);return h>=0&&h<=23?h:null}
+async function parseOne(file){const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});let productId=null,spu=null,pname=null;const rows=[];for(const r of raw){const hr=hourNum(val(r,aliases.hour));const date=dateStr(val(r,aliases.business_date));const pid=val(r,aliases.product_id);if(pid&&!String(pid).includes('共'))productId=String(pid).trim();const sv=val(r,aliases.spu);if(sv)spu=String(sv).trim();const pn=val(r,aliases.product_name);if(pn&&String(pn).length>3)pname=String(pn).trim();if(hr===null||!date)continue;const impressions=num(val(r,aliases.impressions)),clicks=num(val(r,aliases.clicks)),orders=num(val(r,aliases.orders));rows.push({business_date:date,source_hour:hr,impressions,clicks,add_to_cart_count:num(val(r,aliases.cart)),suborder_count:orders,unit_count:num(val(r,aliases.units)),gross_sales:num(val(r,aliases.sales)),gross_ad_spend:num(val(r,aliases.spend)),ctr:num(val(r,aliases.ctr),true),cvr:num(val(r,aliases.cvr),true),roas:num(val(r,aliases.roas)),net_ad_spend:num(val(r,aliases.netSpend)),net_sales:num(val(r,aliases.netSales)),net_suborder_count:num(val(r,aliases.netOrders)),net_unit_count:num(val(r,aliases.netUnits)),net_roas:num(val(r,aliases.netRoas)),cpa:num(val(r,aliases.cpa)),net_cpa:num(val(r,aliases.netCpa)),raw_payload:r})}if(!productId){const m=file.name.match(/(60\d{13,})/);if(m)productId=m[1]}return {file_name:file.name,product_id:productId,spu,product_name:pname,rows}}
+q('parseBtn').onclick=async()=>{try{const fs=[...q('files').files];if(!fs.length)throw new Error('请先选择Excel文件');parsedFiles=[];for(const f of fs)parsedFiles.push(await parseOne(f));q('preview').textContent=parsedFiles.map(x=>`${x.file_name}\n商品ID: ${x.product_id||'未识别'}  SPU: ${x.spu||'-'}\n小时行: ${x.rows.length}  日期: ${[...new Set(x.rows.map(r=>r.business_date))].join(', ')}`).join('\n\n');q('uploadMsg').innerHTML='<div class="ok">解析完成，请核对后点击“确认入库”。</div>'}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
+q('uploadBtn').onclick=async()=>{try{if(!parsedFiles.length)await q('parseBtn').onclick();if(parsedFiles.some(x=>!x.product_id||x.rows.length===0))throw new Error('存在未识别商品ID或没有小时数据的文件，请先检查解析预览');q('uploadMsg').innerHTML='<div class="notice">正在入库并重跑诊断...</div>';const d=await api('upload-hourly',{method:'POST',body:JSON.stringify({store_id:q('uploadStore').value,files:parsedFiles})});q('uploadMsg').innerHTML=`<div class="ok">入库成功：${d.files}个文件，${d.rows}条小时数据；日期 ${d.dates.join(', ')}</div>`;await refresh()}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
+function eventValue(){const t=q('eventType').value,v=q('eventValue').value.trim(),x=q('eventExtra').value.trim();if(t==='ROI_TARGET'||t==='DAILY_BUDGET')return {value:Number(v)};if(t==='FRONT_PRICE')return {value:Number(v),currency:x||'USD',is_final_after_coupon:true};if(t==='CAMPAIGN_PRICE')return {value:Number(v),name:x||null,status:'ON'};if(t==='COUPON')return {enabled:/^(on|开|开启|true|1)$/i.test(v),amount:x?Number(x):null,type:'amount'};if(t==='INVENTORY_STATUS')return {value:v,available_qty:x?Number(x):null};if(t==='SIZE_STOCKOUT')return {value:v,core_size_stockout:/soldout|售罄|缺货|oos/i.test(v)};return {value:v}}
+q('saveState').onclick=async()=>{try{if(!q('stateProduct').value.trim())throw new Error('请填写商品ID');q('stateMsg').innerHTML='<div class="notice">正在保存...</div>';const d=await api('state-change',{method:'POST',body:JSON.stringify({store_id:q('stateStore').value,product_id:q('stateProduct').value.trim(),event_type:q('eventType').value,new_value:eventValue(),variant_key:q('variantKey').value.trim()||'__ALL__',size_key:q('sizeKey').value.trim()||null,effective_at:q('effectiveAt').value||null,reason:q('reason').value.trim()||null})});q('stateMsg').innerHTML=`<div class="ok">保存成功。系统已记录旧值并更新当前状态。事件ID：${esc(d.event_id)}</div>`}catch(e){q('stateMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
+if(tok)refresh().catch(logout);
 </script>
 </body>
 </html>
