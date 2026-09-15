@@ -6,31 +6,69 @@
   <title>亦诺跨境 · TEMU 商品智能运营测试</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.hide{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.box,.card{background:#fff;border:1px solid #e4e9f1;border-radius:16px;box-shadow:0 8px 28px rgba(25,40,65,.06)}.box{width:min(440px,100%);padding:28px}.muted{color:#718096;font-size:14px}.notice,.ok,.err{padding:10px 12px;border-radius:10px;font-size:13px}.notice{background:#eef6ff;border:1px solid #cfe4ff;color:#34527a}.ok{background:#ecfdf5;color:#047857}.err{background:#fff1f2;color:#b42318}.form{display:grid;gap:10px;margin-top:18px}input,button,select,textarea{font:inherit;padding:11px 12px;border-radius:10px}input,select,textarea{border:1px solid #d7dde8;background:#fff}textarea{min-height:84px;resize:vertical}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.secondary{background:#e9edf4;color:#172033}.app{max-width:1380px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab{background:#e9edf4;color:#172033}.tab.on{background:#111827;color:#fff}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.card{padding:18px}.kpi{font-size:30px;font-weight:760;margin-top:5px}.pill{background:#eaf0ff;color:#3452a4;padding:6px 10px;border-radius:999px;font-size:13px}.section{margin-top:14px}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:top}.warning{color:#c27a00}.critical{color:#bd2020}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:6px}.field label{font-size:13px;font-weight:700}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.small{font-size:12px}.pre{white-space:pre-wrap;background:#f8fafc;border:1px solid #e7ebf2;border-radius:10px;padding:12px;font-size:12px;max-height:260px;overflow:auto}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#f1f5f9;font-size:12px}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.twocol{grid-template-columns:1fr}.app{padding:14px}}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.hide{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.box,.card{background:#fff;border:1px solid #e4e9f1;border-radius:16px;box-shadow:0 8px 28px rgba(25,40,65,.06)}.box{width:min(440px,100%);padding:28px}.muted{color:#718096;font-size:14px}.notice,.ok,.err{padding:10px 12px;border-radius:10px;font-size:13px}.notice{background:#eef6ff;border:1px solid #cfe4ff;color:#34527a}.ok{background:#ecfdf5;color:#047857}.err{background:#fff1f2;color:#b42318}.form{display:grid;gap:10px;margin-top:18px}input,button,select,textarea{font:inherit;padding:11px 12px;border-radius:10px}input,select,textarea{border:1px solid #d7dde8;background:#fff}textarea{min-height:84px;resize:vertical}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.secondary{background:#e9edf4;color:#172033}.app{max-width:1380px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab{background:#e9edf4;color:#172033}.tab.on{background:#111827;color:#fff}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.card{padding:18px}.kpi{font-size:30px;font-weight:760;margin-top:5px}.pill{background:#eaf0ff;color:#3452a4;padding:6px 10px;border-radius:999px;font-size:13px}.section{margin-top:14px}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:top}.warning{color:#c27a00}.critical{color:#bd2020}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:6px}.field label{font-size:13px;font-weight:700}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.small{font-size:12px}.pre{white-space:pre-wrap;background:#f8fafc;border:1px solid #e7ebf2;border-radius:10px;padding:12px;font-size:12px;max-height:300px;overflow:auto}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#f1f5f9;font-size:12px}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.twocol{grid-template-columns:1fr}.app{padding:14px}}
   </style>
 </head>
 <body>
-<main id="login" class="login"><section class="box"><h1 style="margin:0 0 8px">亦诺跨境 · TEMU 商品智能运营</h1><div class="muted">独立测试版 P0-4</div><div class="notice" style="margin-top:14px">使用现有运营任务 ERP 的公司账号登录。测试通过后再合并进正式 ERP。</div><form id="loginForm" class="form"><input id="email" type="email" placeholder="邮箱" required><input id="password" type="password" placeholder="密码" required><button>登录</button></form><div id="loginErr" class="err hide" style="margin-top:12px"></div></section></main>
+<main id="login" class="login">
+  <section class="box">
+    <h1 style="margin:0 0 8px">亦诺跨境 · TEMU 商品智能运营</h1>
+    <div class="muted">独立测试版 P0-5</div>
+    <div class="notice" style="margin-top:14px">使用现有运营任务 ERP 的公司账号登录。测试通过后再合并进正式 ERP。</div>
+    <form id="loginForm" class="form"><input id="email" type="email" placeholder="邮箱" required><input id="password" type="password" placeholder="密码" required><button>登录</button></form>
+    <div id="loginErr" class="err hide" style="margin-top:12px"></div>
+  </section>
+</main>
 
 <main id="app" class="app hide">
-  <div class="top"><div><h1 style="margin:0">TEMU US 商品智能运营</h1><div class="muted">P0-4 · 数据 → 诊断 → 状态变更 → 实验 → 验证</div></div><div><span id="role" class="pill"></span> <button id="logout" class="secondary">退出</button></div></div>
+  <div class="top"><div><h1 style="margin:0">TEMU US 商品智能运营</h1><div class="muted">P0-5 · 数据 → 诊断 → 状态变更 → 实验 → 验证</div></div><div><span id="role" class="pill"></span> <button id="logout" class="secondary">退出</button></div></div>
   <div class="tabs"><button class="tab on" data-pane="overview">经营总览</button><button class="tab" data-pane="upload">数据上传</button><button class="tab" data-pane="state">商品状态变更</button></div>
 
   <section id="overview" class="pane">
-    <div class="grid"><div class="card"><div class="muted">已纳管商品</div><div id="pc" class="kpi">0</div></div><div class="card"><div class="muted">AI诊断</div><div id="dc" class="kpi">0</div></div><div class="card"><div class="muted">高优先级</div><div id="hc" class="kpi">0</div></div><div class="card"><div class="muted">可访问店铺</div><div id="sc" class="kpi">0</div></div><div class="card"><div class="muted">小时数据</div><div id="hrc" class="kpi">0</div><div id="latestDate" class="small muted"></div></div></div>
+    <div class="grid">
+      <div class="card"><div class="muted">已纳管商品</div><div id="pc" class="kpi">0</div></div>
+      <div class="card"><div class="muted">AI诊断</div><div id="dc" class="kpi">0</div></div>
+      <div class="card"><div class="muted">高优先级</div><div id="hc" class="kpi">0</div></div>
+      <div class="card"><div class="muted">可访问店铺</div><div id="sc" class="kpi">0</div></div>
+      <div class="card"><div class="muted">小时数据</div><div id="hrc" class="kpi">0</div><div id="latestDate" class="small muted"></div></div>
+    </div>
     <section class="card section"><h2>AI诊断 / 当前优先级</h2><div id="tbl"></div></section>
   </section>
 
   <section id="upload" class="pane hide">
     <div class="twocol">
-      <section class="card"><h2 style="margin-top:0">TEMU 小时数据上传</h2><div class="notice">先选店铺，再上传 TEMU 单商品小时级 Excel。系统自动排除“共24项”等汇总行，`--`按空值处理，并按商品+日期+小时去重。</div><div class="form"><div class="field"><label>店铺</label><select id="uploadStore"></select></div><div class="field"><label>Excel 文件</label><input id="files" type="file" accept=".xlsx,.xls,.csv" multiple></div><div class="actions"><button id="parseBtn" type="button" class="secondary">解析预览</button><button id="uploadBtn" type="button">确认入库</button></div><div id="uploadMsg"></div></div></section>
+      <section class="card">
+        <h2 style="margin-top:0">TEMU 小时数据上传</h2>
+        <div class="notice">24个小时明细进入小时表；“共24项”单独进入日汇总表，用于保留净花费、净ROAS等字段。重复上传同一文件会幂等更新，不会重复累加。</div>
+        <div class="form">
+          <div class="field"><label>店铺</label><select id="uploadStore"></select></div>
+          <div class="field"><label>Excel 文件</label><input id="files" type="file" accept=".xlsx,.xls,.csv" multiple></div>
+          <div class="actions"><button id="parseBtn" type="button" class="secondary">解析预览</button><button id="uploadBtn" type="button">确认入库</button></div>
+          <div id="uploadMsg"></div>
+        </div>
+      </section>
       <section class="card"><h2 style="margin-top:0">解析预览</h2><div id="preview" class="pre muted">尚未选择文件。</div></section>
     </div>
   </section>
 
   <section id="state" class="pane hide">
     <div class="twocol">
-      <section class="card"><h2 style="margin-top:0">记录商品经营变化</h2><div class="notice">只在发生变化时记录。保存后系统会保留旧值、更新当前状态；ROI/价格/优惠券/预算/主图变化会自动建立实验。</div><div class="form"><div class="field"><label>店铺</label><select id="stateStore"></select></div><div class="field"><label>商品 ID</label><input id="stateProduct" placeholder="例如 601103263641724"></div><div class="field"><label>变化类型</label><select id="eventType"><option value="ROI_TARGET">ROI目标</option><option value="FRONT_PRICE">前端售价</option><option value="CAMPAIGN_PRICE">活动价格</option><option value="COUPON">优惠券</option><option value="DAILY_BUDGET">广告预算</option><option value="INVENTORY_STATUS">库存状态</option><option value="SIZE_STOCKOUT">尺码售罄</option><option value="MAIN_IMAGE">主图版本</option><option value="CAMPAIGN_STATUS">活动状态</option></select></div><div class="field"><label>新值</label><input id="eventValue" placeholder="例如 6.5 / 17.45 / M,L售罄"></div><div class="field"><label>附加信息</label><input id="eventExtra" placeholder="价格币种USD；优惠券金额；可用库存数量等"></div><div class="field"><label>变体/颜色（可选）</label><input id="variantKey" placeholder="例如 黑色；不填=整商品"></div><div class="field"><label>尺码（仅售罄事件可选）</label><input id="sizeKey" placeholder="例如 M"></div><div class="field"><label>生效时间</label><input id="effectiveAt" type="datetime-local"></div><div class="field"><label>原因/备注</label><textarea id="reason" placeholder="例如 ROI 7→6.5 测试流量"></textarea></div><button id="saveState" type="button">保存变更</button><div id="stateMsg"></div></div></section>
+      <section class="card">
+        <h2 style="margin-top:0">记录商品经营变化</h2>
+        <div class="notice">只在发生变化时记录。保存后系统会保留旧值、更新当前状态；ROI/价格/优惠券/预算/主图变化会自动建立实验。</div>
+        <div class="form">
+          <div class="field"><label>店铺</label><select id="stateStore"></select></div>
+          <div class="field"><label>商品 ID</label><input id="stateProduct" placeholder="例如 601103263641724"></div>
+          <div class="field"><label>变化类型</label><select id="eventType"><option value="ROI_TARGET">ROI目标</option><option value="FRONT_PRICE">前端售价</option><option value="CAMPAIGN_PRICE">活动价格</option><option value="COUPON">优惠券</option><option value="DAILY_BUDGET">广告预算</option><option value="INVENTORY_STATUS">库存状态</option><option value="SIZE_STOCKOUT">尺码售罄</option><option value="MAIN_IMAGE">主图版本</option><option value="CAMPAIGN_STATUS">活动状态</option></select></div>
+          <div class="field"><label>新值</label><input id="eventValue" placeholder="例如 6.5 / 17.45 / SOLDOUT"></div>
+          <div class="field"><label>附加信息</label><input id="eventExtra" placeholder="价格币种USD；优惠券金额；可用库存数量等"></div>
+          <div class="field"><label>变体/颜色（可选）</label><input id="variantKey" placeholder="例如 黑色；不填=整商品"></div>
+          <div class="field"><label>尺码（仅售罄事件可选）</label><input id="sizeKey" placeholder="例如 M"></div>
+          <div class="field"><label>生效时间</label><input id="effectiveAt" type="datetime-local"></div>
+          <div class="field"><label>原因/备注</label><textarea id="reason" placeholder="例如 ROI 7→6.5 测试流量"></textarea></div>
+          <button id="saveState" type="button">保存变更</button><div id="stateMsg"></div>
+        </div>
+      </section>
       <section class="card"><h2 style="margin-top:0">填写规则</h2><div class="pre">ROI目标：新值填 6.5\n前端售价：新值填 17.45；附加信息可填 USD\n活动价格：新值填价格；附加信息可填活动名称\n优惠券：新值填 ON / OFF；附加信息填金额，例如 3\n广告预算：新值填金额\n库存状态：新值填 NORMAL / LOW / OOS；附加信息填可用数量\n尺码售罄：新值填 SOLDOUT / NORMAL；尺码字段填 M/L/XL\n主图版本：新值填 V4\n活动状态：新值填 ON / OFF\n\n前端售价若已经是消费者看到的券后最终价，系统不会再次扣减优惠券。</div></section>
     </div>
   </section>
@@ -45,55 +83,49 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 async function api(path,opt={}){const r=await fetch(API+'?api='+path,{...opt,headers:{'content-type':'application/json','apikey':KEY,'authorization':'Bearer '+tok,...(opt.headers||{})}});const d=await r.json();if(!r.ok)throw new Error(d.error||'请求失败');return d}
 async function login(email,password){const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'content-type':'application/json','apikey':KEY},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw new Error(d.error_description||d.msg||'登录失败');tok=d.access_token;localStorage.setItem('temu_token',tok)}
 function storesOptions(stores){return (stores||[]).map(s=>`<option value="${esc(s.id)}">${esc(s.store_name)}</option>`).join('')}
-async function refresh(){dash=await api('dashboard');q('role').textContent=dash.member?.role==='manager'?'Manager':'Operator';q('pc').textContent=dash.product_count||0;q('dc').textContent=(dash.diagnostics||[]).length;q('hc').textContent=(dash.diagnostics||[]).filter(x=>Number(x.action_priority)>=80).length;q('sc').textContent=(dash.stores||[]).length;q('hrc').textContent=dash.hourly_rows||0;q('latestDate').textContent=dash.latest_hourly_date?'最新 '+dash.latest_hourly_date:'暂无小时数据';q('uploadStore').innerHTML=storesOptions(dash.stores);q('stateStore').innerHTML=storesOptions(dash.stores);const ds=dash.diagnostics||[];q('tbl').innerHTML=ds.length?'<div class="tablewrap"><table class="table"><thead><tr><th>日期</th><th>商品</th><th>诊断</th><th>等级</th><th>置信度</th><th>Priority</th><th>机会损失</th><th>建议</th></tr></thead><tbody>'+ds.map(x=>`<tr><td>${esc(x.business_date)}</td><td>${esc(x.product_id)}</td><td>${esc(x.diagnosis_type)}</td><td class="${x.severity==='CRITICAL'?'critical':x.severity==='WARNING'?'warning':''}">${esc(x.severity)}</td><td>${esc(x.confidence_band||'-')}</td><td>${esc(x.action_priority??'-')}</td><td>${Number(x.opportunity_loss_orders||0).toFixed(1)}单</td><td>${esc(x.recommended_action||'-')}</td></tr>`).join('')+'</tbody></table></div>':'<p class="muted">暂无诊断。</p>';q('login').classList.add('hide');q('app').classList.remove('hide')}
+function restoreSelect(selectId,preferred){const el=q(selectId);if(preferred&&[...el.options].some(o=>o.value===preferred))el.value=preferred}
+async function refresh(preferredStore=null){
+  const keepUpload=preferredStore||q('uploadStore')?.value||localStorage.getItem('temu_last_store')||'';
+  const keepState=q('stateStore')?.value||keepUpload;
+  dash=await api('dashboard');
+  q('role').textContent=dash.member?.role==='manager'?'Manager':'Operator';q('pc').textContent=dash.product_count||0;q('dc').textContent=(dash.diagnostics||[]).length;q('hc').textContent=(dash.diagnostics||[]).filter(x=>Number(x.action_priority)>=80).length;q('sc').textContent=(dash.stores||[]).length;q('hrc').textContent=dash.hourly_rows||0;q('latestDate').textContent=dash.latest_hourly_date?'最新 '+dash.latest_hourly_date:'暂无小时数据';
+  q('uploadStore').innerHTML=storesOptions(dash.stores);q('stateStore').innerHTML=storesOptions(dash.stores);restoreSelect('uploadStore',keepUpload);restoreSelect('stateStore',keepState);
+  const ds=dash.diagnostics||[];q('tbl').innerHTML=ds.length?'<div class="tablewrap"><table class="table"><thead><tr><th>日期</th><th>商品</th><th>诊断</th><th>等级</th><th>置信度</th><th>Priority</th><th>机会损失</th><th>建议</th></tr></thead><tbody>'+ds.map(x=>`<tr><td>${esc(x.business_date)}</td><td>${esc(x.product_id)}</td><td>${esc(x.diagnosis_type)}</td><td class="${x.severity==='CRITICAL'?'critical':x.severity==='WARNING'?'warning':''}">${esc(x.severity)}</td><td>${esc(x.confidence_band||'-')}</td><td>${esc(x.action_priority??'-')}</td><td>${Number(x.opportunity_loss_orders||0).toFixed(1)}单</td><td>${esc(x.recommended_action||'-')}</td></tr>`).join('')+'</tbody></table></div>':'<p class="muted">暂无诊断。</p>';
+  q('login').classList.add('hide');q('app').classList.remove('hide');
+}
 function logout(){tok='';localStorage.removeItem('temu_token');q('app').classList.add('hide');q('login').classList.remove('hide')}
 q('loginForm').onsubmit=async e=>{e.preventDefault();q('loginErr').classList.add('hide');try{await login(q('email').value,q('password').value);await refresh()}catch(x){q('loginErr').textContent=x.message;q('loginErr').classList.remove('hide')}};q('logout').onclick=logout;
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pane').forEach(x=>x.classList.add('hide'));b.classList.add('on');q(b.dataset.pane).classList.remove('hide')});
+q('uploadStore').addEventListener('change',()=>localStorage.setItem('temu_last_store',q('uploadStore').value));
 
 const aliases={
- product_id:['商品ID','商品id','产品ID','产品id','Product ID','product_id'],
- spu:['SPU ID','SPU','spu'],
- business_date:['日期','数据日期','business_date'],
- hour:['小时','时间','时段','hour'],
- impressions:['曝光（全域）','曝光量（全域）','全域曝光','曝光','impressions'],
- clicks:['点击（全域）','点击量（全域）','全域点击','点击','clicks'],
- cart:['加入购物车数（全域）','加购（全域）','加购量（全域）','全域加购','加购','add_to_cart_count'],
- orders:['子订单数（全域）','子订单（全域）','子订单量（全域）','子订单','订单','suborder_count'],
- units:['件数（全域）','成交件数（全域）','件数','unit_count'],
- sales:['申报价销售额（全域）','销售额（全域）','全域销售额','销售额','gross_sales'],
- spend:['花费','推广花费','gross_ad_spend'],
- ctr:['点击率（全域）','全域点击率','CTR','ctr'],
- cvr:['转化率（全域）','全域转化率','CVR','cvr'],
- roas:['投资回报率(ROAS)（全域）','投资回报率（ROAS）（全域）','ROAS（全域）','ROAS','roi','ROI','roas'],
- feeRatio:['费比（全域）','fee_ratio'],
- netSpend:['净花费','net_ad_spend'],
- netSales:['净申报价销售额（全域）','净销售额（全域）','净销售额','net_sales'],
- netOrders:['净子订单数（全域）','净子订单','净订单','net_suborder_count'],
- netUnits:['净件数（全域）','净成交件数（全域）','net_unit_count'],
- netRoas:['净投资回报率(ROAS)（全域）','净投资回报率（ROAS）（全域）','净ROAS','net_roas'],
- netFeeRatio:['净费比（全域）','net_fee_ratio'],
- cpa:['每笔成交花费（全域）','成交花费','每笔成交花费','cpa'],
- netCpa:['净每笔成交花费（全域）','净成交花费','net_cpa']
+ product_id:['商品ID','商品id','产品ID','产品id','Product ID','product_id'],spu:['SPU ID','SPU','spu'],business_date:['日期','数据日期','business_date'],hour:['小时','时间','时段','hour'],
+ impressions:['曝光（全域）','曝光量（全域）','全域曝光','曝光','impressions'],clicks:['点击（全域）','点击量（全域）','全域点击','点击','clicks'],cart:['加入购物车数（全域）','加购（全域）','加购量（全域）','全域加购','加购','add_to_cart_count'],orders:['子订单数（全域）','子订单（全域）','子订单量（全域）','子订单','订单','suborder_count'],units:['件数（全域）','成交件数（全域）','件数','unit_count'],sales:['申报价销售额（全域）','销售额（全域）','全域销售额','销售额','gross_sales'],spend:['花费','推广花费','gross_ad_spend'],ctr:['点击率（全域）','全域点击率','CTR','ctr'],cvr:['转化率（全域）','全域转化率','CVR','cvr'],roas:['投资回报率(ROAS)（全域）','投资回报率（ROAS）（全域）','ROAS（全域）','ROAS','roi','ROI','roas'],feeRatio:['费比（全域）','fee_ratio'],netSpend:['净花费','net_ad_spend'],netSales:['净申报价销售额（全域）','净销售额（全域）','净销售额','net_sales'],netOrders:['净子订单数（全域）','净子订单','净订单','net_suborder_count'],netUnits:['净件数（全域）','净成交件数（全域）','net_unit_count'],netRoas:['净投资回报率(ROAS)（全域）','净投资回报率（ROAS）（全域）','净ROAS','net_roas'],netFeeRatio:['净费比（全域）','net_fee_ratio'],cpa:['每笔成交花费（全域）','成交花费','每笔成交花费','cpa'],netCpa:['净每笔成交花费（全域）','净成交花费','net_cpa']
 };
 function val(row,names){for(const k of names){if(row[k]!==undefined&&row[k]!==null&&row[k]!=='')return row[k]}return null}
 function titleVal(row){const candidates=[row['商品名称'],row['产品标题'],row['商品标题'],row['Product Name'],row['当前区域']].map(v=>v==null?'':String(v).trim()).filter(v=>v&&v!=='全部'&&v!=='美国');candidates.sort((a,b)=>b.length-a.length);return candidates[0]||null}
 function num(v,percent=false){if(v===null||v===undefined||v===''||v==='--')return null;let s=String(v).replace(/[,¥$￥]/g,'').trim();let p=s.endsWith('%');if(p)s=s.slice(0,-1);let x=Number(s);if(!Number.isFinite(x))return null;return (p||percent&&x>1)?x/100:x}
 function dateStr(v){if(!v)return null;if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==='number'&&window.XLSX?.SSF){const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}const s=String(v).trim();const m=s.match(/(20\d{2})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`:null}
 function hourNum(v){if(v===null||v===undefined||v==='')return null;if(v instanceof Date&&!isNaN(v))return v.getHours();const s=String(v).trim();let m=s.match(/(?:T|\s)(\d{1,2}):(\d{2})(?::\d{2})?\s*$/);if(m){const h=Number(m[1]);return h>=0&&h<=23?h:null}m=s.match(/^(\d{1,2})(?::\d{2})?(?:\s*[-~至].*)?$/);if(m){const h=Number(m[1]);return h>=0&&h<=23?h:null}return null}
+function metricRow(r,date){return {business_date:date,impressions:num(val(r,aliases.impressions)),clicks:num(val(r,aliases.clicks)),add_to_cart_count:num(val(r,aliases.cart)),suborder_count:num(val(r,aliases.orders)),unit_count:num(val(r,aliases.units)),gross_sales:num(val(r,aliases.sales)),gross_ad_spend:num(val(r,aliases.spend)),ctr:num(val(r,aliases.ctr),true),cvr:num(val(r,aliases.cvr),true),roas:num(val(r,aliases.roas)),fee_ratio:num(val(r,aliases.feeRatio),true),net_ad_spend:num(val(r,aliases.netSpend)),net_sales:num(val(r,aliases.netSales)),net_suborder_count:num(val(r,aliases.netOrders)),net_unit_count:num(val(r,aliases.netUnits)),net_roas:num(val(r,aliases.netRoas)),net_fee_ratio:num(val(r,aliases.netFeeRatio),true),cpa:num(val(r,aliases.cpa)),net_cpa:num(val(r,aliases.netCpa)),raw_payload:r}}
+async function sha256(buf){const digest=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 async function parseOne(file){
- const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});let productId=null,spu=null,pname=null;const rows=[];
- for(const r of raw){
-  const dtRaw=val(r,aliases.business_date);const date=dateStr(dtRaw);const hr=hourNum(val(r,aliases.hour)) ?? hourNum(dtRaw);
-  const pid=val(r,aliases.product_id);if(pid&&!String(pid).includes('共'))productId=String(pid).trim();const sv=val(r,aliases.spu);if(sv)spu=String(sv).trim();const pn=titleVal(r);if(pn&&pn.length>3)pname=pn;
-  if(hr===null||!date)continue;
-  const impressions=num(val(r,aliases.impressions)),clicks=num(val(r,aliases.clicks)),orders=num(val(r,aliases.orders));
-  rows.push({business_date:date,source_hour:hr,impressions,clicks,add_to_cart_count:num(val(r,aliases.cart)),suborder_count:orders,unit_count:num(val(r,aliases.units)),gross_sales:num(val(r,aliases.sales)),gross_ad_spend:num(val(r,aliases.spend)),ctr:num(val(r,aliases.ctr),true),cvr:num(val(r,aliases.cvr),true),roas:num(val(r,aliases.roas)),fee_ratio:num(val(r,aliases.feeRatio),true),net_ad_spend:num(val(r,aliases.netSpend)),net_sales:num(val(r,aliases.netSales)),net_suborder_count:num(val(r,aliases.netOrders)),net_unit_count:num(val(r,aliases.netUnits)),net_roas:num(val(r,aliases.netRoas)),net_fee_ratio:num(val(r,aliases.netFeeRatio),true),cpa:num(val(r,aliases.cpa)),net_cpa:num(val(r,aliases.netCpa)),raw_payload:r});
- }
- if(!productId){const m=file.name.match(/(60\d{13,})/);if(m)productId=m[1]}
- return {file_name:file.name,product_id:productId,spu,product_name:pname,rows};
+  const buf=await file.arrayBuffer();const fileHash=await sha256(buf);const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});let productId=null,spu=null,pname=null,summaryRaw=null;const rows=[];
+  for(const r of raw){
+    const values=Object.values(r).map(v=>String(v??''));const isSummary=values.some(v=>v.includes('共24项'));
+    const dtRaw=val(r,aliases.business_date);const date=dateStr(dtRaw);const hr=hourNum(val(r,aliases.hour)) ?? hourNum(dtRaw);
+    const pid=val(r,aliases.product_id);if(pid&&!String(pid).includes('共'))productId=String(pid).trim();const sv=val(r,aliases.spu);if(sv)spu=String(sv).trim();const pn=titleVal(r);if(pn&&pn.length>3)pname=pn;
+    if(isSummary){summaryRaw=r;continue}
+    if(hr===null||!date)continue;
+    rows.push({source_hour:hr,...metricRow(r,date)});
+  }
+  if(!productId){const m=file.name.match(/(60\d{13,})/);if(m)productId=m[1]}
+  const inferredDate=rows[0]?.business_date||dateStr(file.name);
+  const dailySummary=summaryRaw?metricRow(summaryRaw,dateStr(val(summaryRaw,aliases.business_date))||inferredDate):null;
+  return {file_name:file.name,file_hash:fileHash,product_id:productId,spu,product_name:pname,rows,daily_summary:dailySummary};
 }
-q('parseBtn').onclick=async()=>{try{const fs=[...q('files').files];if(!fs.length)throw new Error('请先选择Excel文件');parsedFiles=[];for(const f of fs)parsedFiles.push(await parseOne(f));q('preview').textContent=parsedFiles.map(x=>`${x.file_name}\n商品ID: ${x.product_id||'未识别'}  SPU: ${x.spu||'-'}\n商品: ${x.product_name||'-'}\n小时行: ${x.rows.length}  日期: ${[...new Set(x.rows.map(r=>r.business_date))].join(', ')}\n小时范围: ${x.rows.length?Math.min(...x.rows.map(r=>r.source_hour))+'-'+Math.max(...x.rows.map(r=>r.source_hour)):'-'}`).join('\n\n');q('uploadMsg').innerHTML='<div class="ok">解析完成，请核对后点击“确认入库”。</div>'}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
-q('uploadBtn').onclick=async()=>{try{if(!parsedFiles.length)await q('parseBtn').onclick();if(parsedFiles.some(x=>!x.product_id||x.rows.length===0))throw new Error('存在未识别商品ID或没有小时数据的文件，请先检查解析预览');q('uploadMsg').innerHTML='<div class="notice">正在入库并重跑诊断...</div>';const d=await api('upload-hourly',{method:'POST',body:JSON.stringify({store_id:q('uploadStore').value,files:parsedFiles})});q('uploadMsg').innerHTML=`<div class="ok">入库成功：${d.files}个文件，${d.rows}条小时数据；日期 ${d.dates.join(', ')}</div>`;await refresh()}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
+q('parseBtn').onclick=async()=>{try{const fs=[...q('files').files];if(!fs.length)throw new Error('请先选择Excel文件');parsedFiles=[];for(const f of fs)parsedFiles.push(await parseOne(f));q('preview').textContent=parsedFiles.map(x=>`${x.file_name}\n商品ID: ${x.product_id||'未识别'}  SPU: ${x.spu||'-'}\n商品: ${x.product_name||'-'}\n小时行: ${x.rows.length}  日期: ${[...new Set(x.rows.map(r=>r.business_date))].join(', ')}\n小时范围: ${x.rows.length?Math.min(...x.rows.map(r=>r.source_hour))+'-'+Math.max(...x.rows.map(r=>r.source_hour)):'-'}\n日汇总: ${x.daily_summary?'已识别':'未识别'}${x.daily_summary?`  净花费: ${x.daily_summary.net_ad_spend??'-'}  净ROAS: ${x.daily_summary.net_roas??'-'}`:''}`).join('\n\n');q('uploadMsg').innerHTML='<div class="ok">解析完成，请核对后点击“确认入库”。</div>'}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
+q('uploadBtn').onclick=async()=>{try{if(!parsedFiles.length)await q('parseBtn').onclick();if(parsedFiles.some(x=>!x.product_id||x.rows.length===0))throw new Error('存在未识别商品ID或没有小时数据的文件，请先检查解析预览');const selectedStore=q('uploadStore').value;localStorage.setItem('temu_last_store',selectedStore);q('uploadMsg').innerHTML='<div class="notice">正在入库并重跑诊断...</div>';const d=await api('upload-hourly',{method:'POST',body:JSON.stringify({store_id:selectedStore,files:parsedFiles})});q('uploadMsg').innerHTML=`<div class="ok">入库成功：${d.files}个文件，${d.rows}条小时数据，${d.daily_summaries||0}条日汇总；日期 ${d.dates.join(', ')}</div>`;await refresh(selectedStore)}catch(e){q('uploadMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
 function eventValue(){const t=q('eventType').value,v=q('eventValue').value.trim(),x=q('eventExtra').value.trim();if(t==='ROI_TARGET'||t==='DAILY_BUDGET')return {value:Number(v)};if(t==='FRONT_PRICE')return {value:Number(v),currency:x||'USD',is_final_after_coupon:true};if(t==='CAMPAIGN_PRICE')return {value:Number(v),name:x||null,status:'ON'};if(t==='COUPON')return {enabled:/^(on|开|开启|true|1)$/i.test(v),amount:x?Number(x):null,type:'amount'};if(t==='INVENTORY_STATUS')return {value:v,available_qty:x?Number(x):null};if(t==='SIZE_STOCKOUT')return {value:v,core_size_stockout:/soldout|售罄|缺货|oos/i.test(v)};return {value:v}}
 q('saveState').onclick=async()=>{try{if(!q('stateProduct').value.trim())throw new Error('请填写商品ID');q('stateMsg').innerHTML='<div class="notice">正在保存...</div>';const d=await api('state-change',{method:'POST',body:JSON.stringify({store_id:q('stateStore').value,product_id:q('stateProduct').value.trim(),event_type:q('eventType').value,new_value:eventValue(),variant_key:q('variantKey').value.trim()||'__ALL__',size_key:q('sizeKey').value.trim()||null,effective_at:q('effectiveAt').value||null,reason:q('reason').value.trim()||null})});q('stateMsg').innerHTML=`<div class="ok">保存成功。系统已记录旧值并更新当前状态。事件ID：${esc(d.event_id)}</div>`}catch(e){q('stateMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
 if(tok)refresh().catch(logout);
