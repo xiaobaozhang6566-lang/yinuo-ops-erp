@@ -1,30 +1,71 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>亦诺跨境运营任务 ERP</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>亦诺跨境 · TEMU 商品智能运营测试</title>
   <style>
-    :root{--bg:#f5f7fb;--panel:#fff;--text:#172033;--muted:#778298;--line:#e4e8ef;--blue:#2563eb;--blue2:#eff6ff;--red:#be123c;--green:#047857;--orange:#c2410c}
-    *{box-sizing:border-box}body{font-family:Arial,'Microsoft YaHei',sans-serif;margin:0;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}
-    .login{min-height:100vh;display:grid;place-items:center}.box{width:min(420px,92vw);background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px}.logo{font-size:20px;font-weight:800;margin-bottom:24px}
-    .field{margin:14px 0}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.input{width:100%;padding:11px;border:1px solid #d7dce5;border-radius:8px;background:#fff;color:var(--text)}textarea.input{min-height:110px;resize:vertical}
-    .btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}.btn:disabled{opacity:.55;cursor:not-allowed}.blue{background:var(--blue);color:#fff}.gray{background:#eef2f7;color:var(--text)}.red{background:#fff0f0;color:#b91c1c}.full{width:100%}
-    .muted{color:var(--muted)}.msg{padding:10px;background:#fff1f2;color:var(--red);border-radius:8px;margin-top:12px}.app{min-height:100vh}
-    .top{background:#10182a;color:#fff;padding:0 24px;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.nav{display:flex;gap:6px;flex-wrap:wrap}.nav button{background:transparent;color:#b9c3d3;border:0;padding:9px 12px;border-radius:7px;cursor:pointer}.nav .on{background:#26344f;color:#fff}
-    .wrap{padding:22px;max-width:1400px;margin:auto}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.card,.panel{background:#fff;border:1px solid var(--line);border-radius:12px}.card{padding:16px}.num{font-size:28px;font-weight:800;margin-top:7px}.panel{margin-bottom:16px;overflow:hidden}.head{padding:14px 16px;border-bottom:1px solid #e8ebf1;display:flex;align-items:center;justify-content:space-between}.head h3{margin:0}.body{padding:16px}.scroll{overflow:auto}
-    .table{width:100%;border-collapse:collapse;min-width:900px}.table th,.table td{padding:11px;border-bottom:1px solid #edf0f4;text-align:left;white-space:nowrap}.table th{font-size:12px;color:#6b7280;background:#f8fafc}.pill{padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:#f1f5f9}.urgent{background:#fff1f2;color:var(--red)}.important{background:#fff7ed;color:var(--orange)}.done{background:#ecfdf5;color:var(--green)}.doing{background:var(--blue2);color:#1d4ed8}.over{color:#dc2626;font-weight:700}.member{padding:11px 0;border-bottom:1px solid #edf0f4;display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:10px;align-items:center}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.48);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.modal{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 22px 70px rgba(0,0,0,.25)}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--line)}.modal-head h2{font-size:20px;margin:0}.modal-close{border:0;background:transparent;font-size:26px;cursor:pointer;color:#64748b}.modal-body{padding:22px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.form-grid .wide{grid-column:1/-1}.modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 22px;border-top:1px solid var(--line);background:#fafbfc}.helper{font-size:12px;color:var(--muted);margin-top:5px}.required{color:#dc2626}.toast{position:fixed;right:22px;bottom:22px;background:#0f172a;color:#fff;padding:12px 16px;border-radius:9px;z-index:1100;box-shadow:0 12px 30px rgba(0,0,0,.22)}
-    @media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.top{padding:14px}.wrap{padding:12px}.member,.form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}.nav{width:100%}.modal{width:100%}}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.box,.card{background:#fff;border:1px solid #e4e9f1;border-radius:16px;box-shadow:0 8px 28px rgba(25,40,65,.06)}.box{width:min(430px,100%);padding:28px}.box h1{margin:0 0 8px;font-size:25px}.muted{color:#718096;font-size:14px}.form{display:grid;gap:10px;margin-top:18px}input,button{font:inherit;padding:12px;border-radius:10px}input{border:1px solid #d7dde8}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.app{max-width:1200px;margin:auto;padding:26px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}.card{padding:18px}.kpi{font-size:30px;font-weight:750;margin-top:5px}.pill{background:#eaf0ff;color:#3452a4;padding:6px 10px;border-radius:999px;font-size:13px}.section{margin-top:14px}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px;border-bottom:1px solid #edf0f5;text-align:left;vertical-align:top}.warning{color:#c27a00}.critical{color:#bd2020}.hide{display:none}.notice{padding:10px 12px;background:#eef6ff;border:1px solid #cfe4ff;border-radius:10px;color:#34527a;font-size:13px;margin-top:12px}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.app{padding:16px}}
   </style>
-  <link rel="stylesheet" href="v13.css?v=1.3">
-  <link rel="stylesheet" href="v14.css?v=1.4">
 </head>
 <body>
-<div id="root"></div>
-<div id="modalRoot"></div>
-<script src="app.js?v=1.2"></script>
-<script src="v13.js?v=1.3"></script>
-<script src="v14.js?v=1.4"></script>
+<main id="login" class="login">
+  <section class="box">
+    <h1>亦诺跨境 · TEMU 商品智能运营</h1>
+    <div class="muted">独立测试版 P0-3</div>
+    <div class="notice">使用现有运营任务 ERP 的公司账号登录。测试通过后再合并进正式 ERP。</div>
+    <form id="f" class="form">
+      <input id="e" type="email" placeholder="邮箱" required />
+      <input id="p" type="password" placeholder="密码" required />
+      <button type="submit">登录</button>
+    </form>
+    <p id="err" class="critical"></p>
+  </section>
+</main>
+<main id="app" class="app hide">
+  <div class="top">
+    <div>
+      <h1 style="margin:0">TEMU US 商品智能运营</h1>
+      <div class="muted">P0-3 · 数据 → 诊断 → 动作 → 实验 → 验证</div>
+    </div>
+    <div><span id="role" class="pill"></span> <button id="out" style="background:#e9edf4;color:#172033">退出</button></div>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="muted">已纳管商品</div><div id="pc" class="kpi">0</div></div>
+    <div class="card"><div class="muted">AI诊断</div><div id="dc" class="kpi">0</div></div>
+    <div class="card"><div class="muted">高优先级</div><div id="hc" class="kpi">0</div></div>
+    <div class="card"><div class="muted">可访问店铺</div><div id="sc" class="kpi">0</div></div>
+  </div>
+  <section class="card section">
+    <h2>AI诊断 / 当前优先级</h2>
+    <div id="tbl"></div>
+  </section>
+</main>
+<script>
+const SUPABASE_URL='https://iscadepgzegrvcqzosso.supabase.co';
+const KEY='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
+const API=SUPABASE_URL+'/functions/v1/temu-ops?api=dashboard';
+let tok=localStorage.getItem('temu_token')||'';
+const q=id=>document.getElementById(id);
+async function login(email,password){
+  const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'content-type':'application/json','apikey':KEY},body:JSON.stringify({email,password})});
+  const d=await r.json(); if(!r.ok) throw new Error(d.error_description||d.msg||'登录失败');
+  tok=d.access_token; localStorage.setItem('temu_token',tok);
+}
+async function refresh(){
+  const r=await fetch(API,{headers:{authorization:'Bearer '+tok,'apikey':KEY}});
+  if(r.status===401){logout();return}
+  const d=await r.json(); if(!r.ok) throw new Error(d.error||'读取失败');
+  q('role').textContent=d.member?.role==='manager'?'Manager':'Operator';
+  q('pc').textContent=d.product_count||0; q('dc').textContent=(d.diagnostics||[]).length;
+  q('hc').textContent=(d.diagnostics||[]).filter(x=>Number(x.action_priority)>=80).length; q('sc').textContent=(d.stores||[]).length;
+  const ds=d.diagnostics||[];
+  q('tbl').innerHTML=ds.length?'<div class="tablewrap"><table class="table"><thead><tr><th>日期</th><th>商品</th><th>诊断</th><th>等级</th><th>置信度</th><th>Priority</th><th>机会损失</th><th>建议</th></tr></thead><tbody>'+ds.map(x=>'<tr><td>'+x.business_date+'</td><td>'+x.product_id+'</td><td>'+x.diagnosis_type+'</td><td class="'+(x.severity==='CRITICAL'?'critical':x.severity==='WARNING'?'warning':'')+'">'+x.severity+'</td><td>'+(x.confidence_band||'-')+'</td><td>'+(x.action_priority??'-')+'</td><td>'+Number(x.opportunity_loss_orders||0).toFixed(1)+'单</td><td>'+(x.recommended_action||'-')+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">暂无可用诊断。数据上传与每日自动扫描后会显示在这里。</p>';
+  q('login').classList.add('hide'); q('app').classList.remove('hide');
+}
+function logout(){tok='';localStorage.removeItem('temu_token');q('app').classList.add('hide');q('login').classList.remove('hide')}
+q('f').onsubmit=async ev=>{ev.preventDefault();q('err').textContent='';try{await login(q('e').value,q('p').value);await refresh()}catch(x){q('err').textContent=x.message}};
+q('out').onclick=logout; if(tok)refresh().catch(()=>logout());
+</script>
 </body>
 </html>
