@@ -9,7 +9,7 @@
 </style>
 </head>
 <body>
-<header class="top"><div><div class="brand">亦诺跨境 · AI 跨境运营总监 <span class="muted">P0 独立测试</span></div></div><div class="toolbar"><button class="btn gray" onclick="location.href='/p0-home.html'">返回P0主系统</button><button class="btn blue" id="runBtn">运行今日巡检</button></div></header>
+<header class="top"><div><div class="brand">亦诺跨境 · AI 跨境运营总监 <span class="muted">P0 独立测试</span></div></div><div class="toolbar"><button class="btn gray" id="backBtn" onclick="location.href='/p0-home.html'">返回P0主系统</button><button class="btn blue" id="runBtn">运行今日巡检</button></div></header>
 <main class="wrap">
 <div class="cards">
  <div class="card">待审批<div class="num" id="pending">—</div></div>
@@ -23,11 +23,52 @@
 <script>
 const U='https://iscadepgzegrvcqzosso.supabase.co';
 const K='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
-let session=null,currentRun=null;
+let session=null,currentRun=null,refreshPromise=null;
 try{session=JSON.parse(localStorage.getItem('ynerp'))}catch{}
+const embedded=new URLSearchParams(location.search).get('embedded')==='1';
+if(embedded){const b=document.getElementById('backBtn');if(b)b.style.display='none'}
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function headers(){return {apikey:K,'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')}}
-async function call(api,opt={}){if(!session?.access_token){location.href='/index.html';throw new Error('请先登录')}const r=await fetch(U+'/functions/v1/ops-director-agent?api='+api,{...opt,headers:{...headers(),...(opt.headers||{})}});const t=await r.text();let d={};try{d=JSON.parse(t)}catch{d={error:t}}if(!r.ok)throw new Error(d.error||'请求失败');return d}
+
+function currentAccessToken(){
+  return session?.access_token || localStorage.getItem('temu_token') || '';
+}
+function currentRefreshToken(){
+  return session?.refresh_token || localStorage.getItem('temu_refresh_token') || '';
+}
+function persistTokenBundle(d){
+  if(!d?.access_token)return;
+  localStorage.setItem('temu_token',d.access_token);
+  if(d.refresh_token)localStorage.setItem('temu_refresh_token',d.refresh_token);
+  if(session){
+    session={...session,...d,user:d.user||session.user};
+    localStorage.setItem('ynerp',JSON.stringify(session));
+  }
+}
+async function refreshSession(){
+  if(refreshPromise)return refreshPromise;
+  const rt=currentRefreshToken();
+  if(!rt)throw new Error('NO_REFRESH_TOKEN');
+  refreshPromise=(async()=>{
+    const r=await fetch(U+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:rt})});
+    const d=await r.json();
+    if(!r.ok||!d?.access_token)throw new Error(d.error_description||d.error||'登录已过期');
+    persistTokenBundle(d);
+    return d.access_token;
+  })().finally(()=>{refreshPromise=null});
+  return refreshPromise;
+}
+function headers(token=currentAccessToken()){return {apikey:K,'Content-Type':'application/json',Authorization:'Bearer '+token}}
+async function call(api,opt={},retried=false){
+  let token=currentAccessToken();
+  if(!token)throw new Error('登录状态不存在，请返回P0主系统重新登录');
+  const r=await fetch(U+'/functions/v1/ops-director-agent?api='+api,{...opt,headers:{...headers(token),...(opt.headers||{})},cache:'no-store'});
+  const t=await r.text();let d={};try{d=JSON.parse(t)}catch{d={error:t}}
+  if(r.status===401&&!retried){
+    try{token=await refreshSession();return call(api,opt,true)}catch{}
+  }
+  if(!r.ok)throw new Error(d.error||'请求失败');
+  return d
+}
 function sevClass(s){return s==='CRITICAL'?'critical':s==='WARNING'?'warning':s==='WATCH'?'watch':''}
 function renderRec(r){const st=r.approval_status||'PENDING';return '<div class="rec"><div class="row"><span class="score">'+e(Math.round(Number(r.priority_score)||0))+'</span><span class="pill '+sevClass(r.severity)+'">'+e(r.severity)+'</span><span class="pill">'+e(r.domain)+'</span><span class="pill status">'+e(st)+'</span></div><div class="title">'+e(r.title)+'</div><div class="muted">'+e(r.rationale||'')+'</div><div class="action"><b>建议动作：</b>'+e(r.recommended_action||'—')+'</div>'+(st==='PENDING'?'<div class="rec-actions"><button class="btn green" onclick="approveRec(\''+r.id+'\')">批准并生成任务</button><button class="btn red" onclick="rejectRec(\''+r.id+'\')">驳回</button></div>':(r.task_id?'<div class="muted" style="margin-top:10px">已生成任务</div>':''))+'</div>'}
 async function load(){try{const s=await call('status');pending.textContent=s.pending;approved.textContent=s.approved;const b=await call('brief');currentRun=b.run;date.textContent=b.run?.business_date||'—';headline.textContent=b.run?.summary?.headline||'尚未运行总监巡检';const rs=b.recommendations||[];high.textContent=rs.filter(x=>Number(x.priority_score)>=80).length;list.innerHTML=rs.length?rs.map(renderRec).join(''):'<div class="empty">暂无总监建议。点击“运行今日巡检”开始。</div>'}catch(z){msg.innerHTML='<div class="msg">'+e(z.message)+'</div>';list.innerHTML='<div class="empty">无法加载总监数据</div>'}}
