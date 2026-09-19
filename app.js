@@ -35,25 +35,86 @@ async function editTask(id){
 function closeWorkModal(){modalRoot.innerHTML=''}
 function openOperatorTask(t){
   if(t.status==='已完成'||t.status==='待验收'){
-    modalRoot.innerHTML=`<div class="modal-backdrop" id="workBackdrop"><div class="modal"><div class="modal-head"><div><h2>任务 #${e(t.task_no)}</h2><div class="muted">${e(t.status)}</div></div><button class="modal-close" onclick="closeWorkModal()">×</button></div><div class="modal-body"><div class="approval-box"><div class="approval-label">任务内容</div><div class="approval-text">${e(t.title)}</div><div style="height:12px"></div><div class="approval-label">已提交结果</div><div class="approval-text">${e(t.result||'—')}</div></div></div><div class="modal-actions"><button class="btn gray" onclick="closeWorkModal()">关闭</button></div></div></div>`;return;
+    modalRoot.innerHTML=`<div class="modal-backdrop" id="workBackdrop"><div class="modal"><div class="modal-head"><div><h2>任务 #${e(t.task_no)}</h2><div class="muted">${e(t.status)}</div></div><button class="modal-close" onclick="closeWorkModal()">×</button></div><div class="modal-body"><div class="approval-box"><div class="approval-label">任务内容</div><div class="approval-text">${e(t.title)}</div><div style="height:12px"></div><div class="approval-label">已提交结果</div><div class="approval-text" style="white-space:pre-wrap">${e(t.result||'—')}</div></div></div><div class="modal-actions"><button class="btn gray" onclick="closeWorkModal()">关闭</button></div></div></div>`;return;
   }
   if(t.status==='待处理'){
     modalRoot.innerHTML=`<div class="modal-backdrop" id="workBackdrop"><div class="modal" style="width:min(620px,100%)"><div class="modal-head"><div><h2>开始处理任务 #${e(t.task_no)}</h2><div class="muted">${e(sn(t.store_id))} · ${e(t.spu||'未指定商品')}</div></div><button class="modal-close" onclick="closeWorkModal()">×</button></div><div class="modal-body"><div class="approval-box"><div class="approval-label">任务内容</div><div class="approval-text">${e(t.title)}</div></div></div><div class="modal-actions"><button class="btn gray" onclick="closeWorkModal()">取消</button><button class="btn blue" onclick="startOperatorTask('${t.id}')">开始处理</button></div></div></div>`;return;
   }
+
   const actionTypes=['投产比目标调整','预算调整','价格调整','优惠券调整','活动调整','主图/图片调整','库存/尺码处理','其他运营动作'];
-  modalRoot.innerHTML=`<div class="modal-backdrop" id="workBackdrop"><div class="modal"><div class="modal-head"><div><h2>提交执行动作 · 任务 #${e(t.task_no)}</h2><div class="muted">提交后进入待验收，并自动进入 AI 效果验证</div></div><button class="modal-close" onclick="closeWorkModal()">×</button></div><form id="workSubmitForm"><div class="modal-body"><div class="form-grid"><div class="field"><label>实际动作类型 <span class="required">*</span></label><select class="input" name="action_type" required>${actionTypes.map(x=>`<option>${e(x)}</option>`).join('')}</select></div><div class="field"><label>是否同时修改其他变量 <span class="required">*</span></label><select class="input" name="multi" required><option value="否" selected>否</option><option value="是">是</option></select></div><div class="field"><label>旧值</label><input class="input" name="old_value" placeholder="例如 7"></div><div class="field"><label>新值</label><input class="input" name="new_value" placeholder="例如 6.5"></div><div class="field wide"><label>实际执行内容 <span class="required">*</span></label><textarea class="input" name="detail" required maxlength="1000" placeholder="写清楚具体执行了什么，例如：将广告投产比目标从7下调到6.5，其他设置不变。"></textarea></div><div class="field wide"><label>补充说明</label><textarea class="input" name="note" maxlength="1000" placeholder="例如：活动价、优惠券、库存均未变化。"></textarea></div><div class="helper wide">AI 会读取本次提交，并关联商品后续 24H / 72H / 7D 数据。若同时修改多个变量，将标记为“多变量干扰”，不会强行归因。</div><div id="workSubmitMsg" class="wide"></div></div></div><div class="modal-actions"><button class="btn gray" type="button" onclick="closeWorkModal()">取消</button><button class="btn blue" id="workSubmitBtn" type="submit">提交验收并进入AI验证</button></div></form></div></div>`;
+  const syncItems=['投产比目标','预算','售价','优惠券','活动','库存/尺码','主图/图片','其他'];
+  modalRoot.innerHTML=`<div class="modal-backdrop" id="workBackdrop"><div class="modal"><div class="modal-head"><div><h2>提交执行动作 · 任务 #${e(t.task_no)}</h2><div class="muted">结构化记录后，AI 将关联 24H / 72H / 7D 效果</div></div><button class="modal-close" onclick="closeWorkModal()">×</button></div><form id="workSubmitForm"><div class="modal-body"><div class="form-grid">
+    <div class="field wide"><label>实际动作类型 <span class="required">*</span></label><select class="input" name="action_type" id="actionType" required>${actionTypes.map(x=>`<option>${e(x)}</option>`).join('')}</select></div>
+    <div class="field wide" id="actionFields"></div>
+    <div class="field wide"><label>同步调整项 <span class="muted">（可多选；没有则不选）</span></label><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">${syncItems.map(x=>`<label style="display:flex;align-items:center;gap:6px;border:1px solid #dbe2ec;border-radius:9px;padding:8px 10px;cursor:pointer;background:#fff"><input type="checkbox" name="sync_item" value="${e(x)}"> ${e(x)}</label>`).join('')}</div><div class="helper">这里专门记录“主动作之外”同时发生的变化。只要勾选，AI 会降低单一动作归因置信度。</div></div>
+    <div class="field wide"><label>额外操作明细</label><textarea class="input" name="extra_detail" maxlength="1000" placeholder="只填写上面选项没有覆盖的实际操作，例如：仅调整某个颜色/尺码、特殊活动位变化等。"></textarea></div>
+    <div class="field wide"><label>补充说明</label><textarea class="input" name="note" maxlength="1000" placeholder="可选，例如：核心尺码库存正常、前端优惠券无变化。"></textarea></div>
+    <div class="helper wide">原则：能选择的不要手写；额外操作明细只用于记录选项中没有覆盖的内容。</div>
+    <div id="workSubmitMsg" class="wide"></div>
+  </div></div><div class="modal-actions"><button class="btn gray" type="button" onclick="closeWorkModal()">取消</button><button class="btn blue" id="workSubmitBtn" type="submit">提交验收并进入AI验证</button></div></form></div></div>`;
+  actionType.onchange=()=>renderActionFields(actionType.value);
+  renderActionFields(actionType.value);
   workSubmitForm.onsubmit=ev=>submitOperatorAction(ev,t);
 }
+
+function renderActionFields(type){
+  const box=$('#actionFields');if(!box)return;
+  const num=(name,label,ph)=>`<div class="field"><label>${label} <span class="required">*</span></label><input class="input" type="number" step="0.01" name="${name}" required placeholder="${ph}"></div>`;
+  if(type==='投产比目标调整'){
+    box.innerHTML=`<div class="form-grid">${num('old_roi','旧ROI','例如 7')}${num('new_roi','新ROI','例如 6.5')}</div>`;
+  }else if(type==='预算调整'){
+    box.innerHTML=`<div class="form-grid">${num('old_budget','旧预算','例如 100')}${num('new_budget','新预算','例如 150')}</div>`;
+  }else if(type==='价格调整'){
+    box.innerHTML=`<div class="form-grid">${num('old_price','旧售价','例如 17.45')}${num('new_price','新售价','例如 16.99')}</div>`;
+  }else if(type==='优惠券调整'){
+    box.innerHTML=`<div class="form-grid"><div class="field"><label>原优惠券状态 <span class="required">*</span></label><select class="input" name="old_coupon_state" required><option>关闭</option><option>开启</option></select></div><div class="field"><label>新优惠券状态 <span class="required">*</span></label><select class="input" name="new_coupon_state" required><option>关闭</option><option>开启</option></select></div>${num('old_coupon_amount','原优惠券金额','例如 3')}${num('new_coupon_amount','新优惠券金额','例如 5')}</div>`;
+  }else if(type==='活动调整'){
+    const opts='<option>未参加</option><option>已参加</option><option>活动暂停</option><option>活动恢复</option><option>活动价格调整</option>';
+    box.innerHTML=`<div class="form-grid"><div class="field"><label>原活动状态 <span class="required">*</span></label><select class="input" name="old_campaign_state" required>${opts}</select></div><div class="field"><label>新活动状态 <span class="required">*</span></label><select class="input" name="new_campaign_state" required>${opts}</select></div></div>`;
+  }else if(type==='主图/图片调整'){
+    box.innerHTML=`<div class="field"><label>图片操作 <span class="required">*</span></label><select class="input" name="image_action" required><option>更换主图</option><option>更换轮播图</option><option>更换场景图</option><option>A+详情调整</option><option>调整图片排序</option><option>其他图片动作</option></select></div>`;
+  }else if(type==='库存/尺码处理'){
+    box.innerHTML=`<div class="field"><label>库存/尺码操作 <span class="required">*</span></label><select class="input" name="inventory_action" required><option>补货</option><option>恢复断码</option><option>清理滞销库存</option><option>调整库存分配</option><option>暂停补货</option><option>其他库存动作</option></select></div>`;
+  }else{
+    box.innerHTML='<div class="helper">请选择“额外操作明细”填写具体动作；该项为其他固定选项无法覆盖时使用。</div>';
+  }
+}
+
 async function startOperatorTask(id){
   try{await api('/rest/v1/rpc/ops_update_my_task',{method:'POST',body:JSON.stringify({p_id:id,p_status:'处理中',p_result:''})});closeWorkModal();await load();draw();toast('已开始处理')}catch(z){alert(z.message)}
 }
+
+function structuredActionLines(f){
+  const type=f.action_type.value;
+  const lines=['表单版本：ACTION_V2','实际动作类型：'+type];
+  if(type==='投产比目标调整'){
+    lines.push('旧ROI：'+f.old_roi.value,'新ROI：'+f.new_roi.value);
+  }else if(type==='预算调整'){
+    lines.push('旧预算：'+f.old_budget.value,'新预算：'+f.new_budget.value);
+  }else if(type==='价格调整'){
+    lines.push('旧售价：'+f.old_price.value,'新售价：'+f.new_price.value);
+  }else if(type==='优惠券调整'){
+    lines.push('原优惠券状态：'+f.old_coupon_state.value,'新优惠券状态：'+f.new_coupon_state.value,'原优惠券金额：'+f.old_coupon_amount.value,'新优惠券金额：'+f.new_coupon_amount.value);
+  }else if(type==='活动调整'){
+    lines.push('原活动状态：'+f.old_campaign_state.value,'新活动状态：'+f.new_campaign_state.value);
+  }else if(type==='主图/图片调整'){
+    lines.push('图片操作：'+f.image_action.value);
+  }else if(type==='库存/尺码处理'){
+    lines.push('库存尺码操作：'+f.inventory_action.value);
+  }
+  const sync=[...f.querySelectorAll('input[name="sync_item"]:checked')].map(x=>x.value);
+  lines.push('同步调整项：'+(sync.length?sync.join('、'):'无'));
+  const extra=f.extra_detail.value.trim();
+  lines.push('额外操作明细：'+(extra||'无'));
+  return {lines,sync,extra};
+}
+
 async function submitOperatorAction(ev,t){
   ev.preventDefault();const f=ev.currentTarget,btn=$('#workSubmitBtn'),msg=$('#workSubmitMsg');
-  const type=f.action_type.value,oldv=f.old_value.value.trim(),newv=f.new_value.value.trim(),multi=f.multi.value,detail=f.detail.value.trim(),note=f.note.value.trim();
-  let result='实际动作类型：'+type;
-  if(oldv||newv)result+='\n动作值：'+(oldv||'未填写')+' → '+(newv||'未填写');
-  result+='\n是否同时修改其他变量：'+multi+'\n实际执行内容：'+detail;
-  const fullNote=(note?note+'\n':'')+'AI验证标记：'+(multi==='是'?'多变量干扰':'单变量/主要变量');
+  const built=structuredActionLines(f);
+  const note=f.note.value.trim();
+  const result=built.lines.join('\n');
+  const fullNote=(note?note+'\n':'')+'AI验证标记：'+(built.sync.length?'存在同步调整项':'主动作单独执行');
   btn.disabled=true;btn.textContent='正在提交...';msg.innerHTML='';
   try{
     await api('/rest/v1/rpc/ops_submit_task',{method:'POST',body:JSON.stringify({p_id:t.id,p_result:result,p_note:fullNote})});
