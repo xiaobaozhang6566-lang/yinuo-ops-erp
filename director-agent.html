@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>AI 跨境运营总监 · P0</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.top{height:62px;background:#fff;border-bottom:1px solid #e4e9f1;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0}.brand{font-weight:850}.muted{color:#718096}.wrap{max-width:1260px;margin:0 auto;padding:22px}.toolbar,.cards{display:flex;gap:12px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:10px 15px;font-weight:750;cursor:pointer}.blue{background:#111827;color:#fff}.gray{background:#e9edf4;color:#172033}.red{background:#fee2e2;color:#991b1b}.green{background:#dcfce7;color:#166534}.card,.panel{background:#fff;border:1px solid #e4e9f1;border-radius:14px;box-shadow:0 2px 10px rgba(25,40,65,.04)}.card{padding:16px;min-width:160px}.num{font-size:28px;font-weight:850;margin-top:6px}.panel{margin-top:16px}.head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #edf1f6}.body{padding:16px 18px}.rec{padding:15px 0;border-bottom:1px solid #edf1f6}.rec:last-child{border-bottom:0}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.score{font-weight:850;font-size:18px}.pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#eef2f7}.critical{background:#fee2e2;color:#991b1b}.warning{background:#fef3c7;color:#92400e}.watch{background:#dbeafe;color:#1d4ed8}.title{font-weight:800;margin:8px 0}.action{margin-top:8px;line-height:1.6}.rec-actions{margin-top:12px;display:flex;gap:8px}.status{font-weight:750}.empty{padding:28px;text-align:center;color:#718096}.msg{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff7ed;color:#9a3412}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.48);display:grid;place-items:center;padding:24px;z-index:1000;backdrop-filter:blur(2px)}
+.modal{width:min(820px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.22);border:1px solid #e2e8f0}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px;border-bottom:1px solid #edf1f6}
+.modal-head h2{margin:0;font-size:20px}.modal-close{border:0;background:#eef2f7;color:#475569;border-radius:9px;width:34px;height:34px;font-size:20px;cursor:pointer}
+.modal-body{padding:20px 22px}.approval-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.approval-box{border:1px solid #e5eaf1;border-radius:14px;padding:16px;background:#fbfcfe}.approval-label{font-size:12px;color:#64748b;font-weight:700;margin-bottom:5px}
+.approval-value{font-weight:800;line-height:1.55}.approval-text{font-size:14px;line-height:1.7;color:#334155}
+.member-list{display:grid;gap:9px;margin-top:10px}.member-card{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid #dbe2ec;border-radius:12px;cursor:pointer;background:#fff;transition:.15s}
+.member-card:hover{border-color:#94a3b8}.member-card.selected{border-color:#111827;box-shadow:0 0 0 2px rgba(17,24,39,.08);background:#f8fafc}
+.member-radio{width:18px;height:18px;border:2px solid #94a3b8;border-radius:50%;display:grid;place-items:center}.member-card.selected .member-radio{border-color:#111827}.member-card.selected .member-radio:after{content:'';width:8px;height:8px;background:#111827;border-radius:50%}
+.member-name{font-weight:800}.member-role{font-size:12px;color:#64748b;margin-top:2px}.approval-note{margin-top:14px;padding:11px 12px;border-radius:10px;background:#f8fafc;color:#475569;font-size:13px;line-height:1.6}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid #edf1f6}.btn:disabled{opacity:.55;cursor:not-allowed}
+.success-wrap{text-align:center;padding:8px 8px 2px}.success-icon{width:58px;height:58px;border-radius:50%;background:#dcfce7;color:#166534;display:grid;place-items:center;margin:0 auto 14px;font-size:30px;font-weight:900}
+.success-title{font-size:21px;font-weight:850}.success-sub{color:#64748b;margin-top:7px;line-height:1.6}.success-meta{margin:18px 0 4px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left}.success-meta>div{background:#f8fafc;border-radius:10px;padding:11px}.success-meta small{display:block;color:#64748b;margin-bottom:4px}
+@media(max-width:700px){.wrap{padding:12px}.top{padding:0 12px}.hint{display:none}.card{flex:1;min-width:44%}.approval-grid{grid-template-columns:1fr}.modal-backdrop{padding:10px}.success-meta{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div><div class="brand">亦诺跨境 · AI 跨境运营总监 <span class="muted">P0 独立测试</span></div></div><div class="toolbar"><button class="btn gray" id="backBtn" onclick="location.href='/p0-home.html'">返回P0主系统</button><button class="btn blue" id="runBtn">运行今日巡检</button></div></header>
+<main class="wrap">
+<div class="cards">
+ <div class="card">待审批<div class="num" id="pending">—</div></div>
+ <div class="card">已批准<div class="num" id="approved">—</div></div>
+ <div class="card">高优先级<div class="num" id="high">—</div></div>
+ <div class="card">巡检日期<div class="num" id="date" style="font-size:19px">—</div></div>
+ <div class="card task-progress-card" style="flex:1 1 520px;min-width:520px">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div><div style="font-weight:800">运营任务执行进度</div><div class="muted" style="font-size:12px;margin-top:4px">AI 总监已批准任务的实际执行状态</div></div><div style="font-size:26px;font-weight:850" id="completionRate">—</div></div>
+   <div class="task-stats" style="display:grid;grid-template-columns:repeat(5,minmax(70px,1fr));gap:8px;margin-top:14px">
+     <div><small class="muted">任务总数</small><div style="font-weight:850;font-size:20px" id="taskTotal">—</div></div>
+     <div><small class="muted">待处理</small><div style="font-weight:850;font-size:20px" id="taskPending">—</div></div>
+     <div><small class="muted">处理中</small><div style="font-weight:850;font-size:20px" id="taskProcessing">—</div></div>
+     <div><small class="muted">待验收</small><div style="font-weight:850;font-size:20px" id="taskReview">—</div></div>
+     <div><small class="muted">已完成</small><div style="font-weight:850;font-size:20px" id="taskCompleted">—</div></div>
+   </div>
+   <div style="height:8px;background:#eef2f7;border-radius:999px;margin-top:14px;overflow:hidden"><div id="taskProgressBar" style="height:100%;width:0%;background:#111827;border-radius:999px;transition:.2s"></div></div>
+   <div id="recentTasks" style="margin-top:12px;display:grid;gap:6px"></div>
+ </div>
+</div>
+<div id="msg"></div>
+<section class="panel"><div class="head"><div><b>总监经营简报</b><div class="muted" id="headline" style="margin-top:4px">加载中…</div></div><button class="btn gray" id="refreshBtn">刷新</button></div><div class="body" id="list"></div></section>
+</main>
+<div id="modalRoot"></div>
+<script>
+const U='https://iscadepgzegrvcqzosso.supabase.co';
+const K='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
+let session=null,currentRun=null,refreshPromise=null;
+try{session=JSON.parse(localStorage.getItem('ynerp'))}catch{}
+const embedded=new URLSearchParams(location.search).get('embedded')==='1';
+if(embedded){const b=document.getElementById('backBtn');if(b)b.style.display='none'}
+const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function currentAccessToken(){
+  return session?.access_token || localStorage.getItem('temu_token') || '';
+}
+function currentRefreshToken(){
+  return session?.refresh_token || localStorage.getItem('temu_refresh_token') || '';
+}
+function persistTokenBundle(d){
+  if(!d?.access_token)return;
+  localStorage.setItem('temu_token',d.access_token);
+  if(d.refresh_token)localStorage.setItem('temu_refresh_token',d.refresh_token);
+  if(session){
+    session={...session,...d,user:d.user||session.user};
+    localStorage.setItem('ynerp',JSON.stringify(session));
+  }
+}
+async function refreshSession(){
+  if(refreshPromise)return refreshPromise;
+  const rt=currentRefreshToken();
+  if(!rt)throw new Error('NO_REFRESH_TOKEN');
+  refreshPromise=(async()=>{
+    const r=await fetch(U+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:rt})});
+    const d=await r.json();
+    if(!r.ok||!d?.access_token)throw new Error(d.error_description||d.error||'登录已过期');
+    persistTokenBundle(d);
+    return d.access_token;
+  })().finally(()=>{refreshPromise=null});
+  return refreshPromise;
+}
+function headers(token=currentAccessToken()){return {apikey:K,'Content-Type':'application/json',Authorization:'Bearer '+token}}
+async function call(api,opt={},retried=false){
+  let token=currentAccessToken();
+  if(!token)throw new Error('登录状态不存在，请返回P0主系统重新登录');
+  const r=await fetch(U+'/functions/v1/ops-director-agent?api='+api,{...opt,headers:{...headers(token),...(opt.headers||{})},cache:'no-store'});
+  const t=await r.text();let d={};try{d=JSON.parse(t)}catch{d={error:t}}
+  if(r.status===401&&!retried){
+    try{token=await refreshSession();return call(api,opt,true)}catch{}
+  }
+  if(!r.ok)throw new Error(d.error||'请求失败');
+  return d
+}
+const CODE_ZH={
+  CRITICAL:'严重',WARNING:'警告',WATCH:'观察',INFO:'提示',
+  HIGH:'高',MEDIUM:'中',LOW:'低',
+  PENDING:'待审批',APPROVED:'已批准',REJECTED:'已驳回',
+  AD_GROWTH:'广告增长',PRODUCT:'商品经营',INVENTORY:'库存管理',PROFIT:'利润管理',AFTERSALES:'售后管理',OPERATIONS:'综合运营',
+  TRAFFIC_VOLUME_DECLINE:'流量规模下降',
+  TRAFFIC_DILUTION:'流量稀释',
+  CONVERSION_PROBLEM:'转化异常',
+  CLICK_PROBLEM:'点击异常',
+  POST_CART_CONVERSION_WEAKNESS:'加购后成交偏弱',
+  SCALE_CANDIDATE:'可放量候选',
+  HOLD_OBSERVE:'继续观察',
+  LOW_SAMPLE:'样本不足',
+  DATA_ISSUE:'数据异常',
+  TRAFFIC:'流量',
+  CONVERSION:'转化',
+  CLICK:'点击',
+  CART:'加购',
+  PRICE:'价格',
+  ROI_TARGET:'投产比目标',
+  BUDGET:'预算',
+  CAMPAIGN:'活动',
+  INVENTORY_DRIVER:'库存',
+  AFTERSALES_DRIVER:'售后',
+  PROFIT_DRIVER:'利润'
+};
+function zhCode(v){
+  const s=String(v??'');
+  return CODE_ZH[s]||s;
+}
+function translateOpsText(v){
+  let s=String(v??'');
+  Object.keys(CODE_ZH).sort((a,b)=>b.length-a.length).forEach(k=>{
+    s=s.replace(new RegExp('\\b'+k+'\\b','g'),CODE_ZH[k]);
+  });
+  return s
+    .replace(/净ROAS/g,'净投产比')
+    .replace(/ROAS/g,'广告投产比')
+    .replace(/ROI目标/g,'投产比目标')
+    .replace(/ROI/g,'投产比')
+    .replace(/CVR/g,'转化率')
+    .replace(/CTR/g,'点击率')
+    .replace(/SPU/g,'款式编码');
+}
+function sevClass(s){return s==='CRITICAL'?'critical':s==='WARNING'?'warning':s==='WATCH'?'watch':''}
+function renderRec(r){
+  const st=r.approval_status||'PENDING';
+  const mainProblem=translateOpsText(r.rationale||'待核查');
+  return '<div class="rec"><div class="row"><span class="pill"><b>优先级 '+e(Math.round(Number(r.priority_score)||0))+'</b></span><span class="pill '+sevClass(r.severity)+'">'+e(zhCode(r.severity))+'</span><span class="pill">'+e(zhCode(r.domain))+'</span><span class="pill status">'+e(zhCode(st))+'</span></div><div class="title">'+e(translateOpsText(r.title))+'</div><div class="action"><b>主要问题：</b>'+e(mainProblem)+'</div><div class="action"><b>建议动作：</b>'+e(translateOpsText(r.recommended_action||'—'))+'</div>'+(st==='PENDING'?'<div class="rec-actions"><button class="btn green" onclick="approveRec(\''+r.id+'\')">批准并生成任务</button><button class="btn red" onclick="rejectRec(\''+r.id+'\')">驳回</button></div>':(r.task_id?'<div class="muted" style="margin-top:10px">已生成运营任务，可在 P0 主系统查看。</div>':''))+'</div>'
+}
+function taskStatusPill(status){
+  const bg=status==='已完成'?'#dcfce7':status==='处理中'?'#dbeafe':status==='待验收'?'#fef3c7':'#eef2f7';
+  const fg=status==='已完成'?'#166534':status==='处理中'?'#1d4ed8':status==='待验收'?'#92400e':'#475569';
+  return '<span style="padding:3px 7px;border-radius:999px;background:'+bg+';color:'+fg+';font-size:12px;font-weight:750">'+e(status||'—')+'</span>';
+}
+function renderTaskProgress(d){
+  const c=d.counts||{};
+  taskTotal.textContent=c.total??0;
+  taskPending.textContent=c.pending??0;
+  taskProcessing.textContent=c.processing??0;
+  taskReview.textContent=c.review??0;
+  taskCompleted.textContent=c.completed??0;
+  const rate=Number(d.completion_rate)||0;
+  completionRate.textContent='完成率 '+rate+'%';
+  taskProgressBar.style.width=Math.max(0,Math.min(100,rate))+'%';
+  const rows=d.recent||[];
+  recentTasks.innerHTML=rows.length?rows.map(x=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:9px;background:#f8fafc"><div style="min-width:0"><b>#'+e(x.task_no||'—')+' · '+e(x.assignee||'未分配')+'</b><span class="muted"> · '+e(x.store_name||'')+' · '+e(x.spu||'')+'</span></div>'+taskStatusPill(x.status)+'</div>').join(''):'<div class="muted" style="font-size:13px">暂无已派发任务</div>';
+}
+async function load(){
+  try{
+    const [s,b,tp]=await Promise.all([call('status'),call('brief'),call('task-progress')]);
+    pending.textContent=s.pending;approved.textContent=s.approved;
+    currentRun=b.run;date.textContent=b.run?.business_date||'—';
+    headline.textContent=b.run?.summary?.headline||'尚未运行总监巡检';
+    const rs=b.recommendations||[];
+    high.textContent=rs.filter(x=>Number(x.priority_score)>=80).length;
+    list.innerHTML=rs.length?rs.map(renderRec).join(''):'<div class="empty">暂无总监建议。点击“运行今日巡检”开始。</div>';
+    renderTaskProgress(tp);
+  }catch(z){
+    msg.innerHTML='<div class="msg">'+e(z.message)+'</div>';
+    list.innerHTML='<div class="empty">无法加载总监数据</div>';
+  }
+}
+async function run(){runBtn.disabled=true;runBtn.textContent='巡检中…';msg.innerHTML='';try{const d=await call('run',{method:'POST',body:'{}'});msg.innerHTML='<div class="msg">巡检完成：'+e(d.summary?.headline||'已完成')+'</div>';await load()}catch(z){msg.innerHTML='<div class="msg">'+e(z.message)+'</div>'}finally{runBtn.disabled=false;runBtn.textContent='运行今日巡检'}}
+let approvalState={rec:null,members:[],assigneeId:null};
+
+function closeModal(){modalRoot.innerHTML='';approvalState={rec:null,members:[],assigneeId:null}}
+function selectAssignee(id){
+  approvalState.assigneeId=id;
+  document.querySelectorAll('.member-card').forEach(el=>el.classList.toggle('selected',el.dataset.id===id));
+  const btn=document.getElementById('confirmApproveBtn');if(btn)btn.disabled=!id;
+}
+async function approveRec(id){
+  try{
+    const [m,b]=await Promise.all([call('members'),call('brief')]);
+    const members=(m.members||[]).filter(x=>x.is_active);
+    if(!members.length){throw new Error('当前没有可分配的运营成员')}
+    const rec=(b.recommendations||[]).find(x=>x.id===id);
+    if(!rec)throw new Error('未找到这条经营建议，请刷新后重试');
+    approvalState={rec,members,assigneeId:rec.assignee_user_id||members[0].user_id};
+
+    const memberHtml=members.map(x=>{
+      const selected=x.user_id===approvalState.assigneeId;
+      return '<div class="member-card '+(selected?'selected':'')+'" data-id="'+e(x.user_id)+'" onclick="selectAssignee(\''+e(x.user_id)+'\')"><span class="member-radio"></span><div><div class="member-name">'+e(x.display_name)+'</div><div class="member-role">'+(x.role==='manager'?'管理员':'运营人员')+'</div></div></div>'
+    }).join('');
+
+    modalRoot.innerHTML='<div class="modal-backdrop" id="approvalBackdrop"><div class="modal" role="dialog" aria-modal="true"><div class="modal-head"><div><h2>批准并生成运营任务</h2><div class="muted" style="margin-top:5px">确认 AI 总监建议，并指定本次任务负责人</div></div><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="approval-grid"><div class="approval-box"><div class="approval-label">经营事项</div><div class="approval-value">'+e(translateOpsText(rec.title))+'</div><div style="height:12px"></div><div class="approval-label">主要问题</div><div class="approval-text">'+e(translateOpsText(rec.rationale||'待核查'))+'</div><div style="height:12px"></div><div class="approval-label">建议动作</div><div class="approval-text">'+e(translateOpsText(rec.recommended_action||'—'))+'</div><div class="approval-note">系统将生成 <b>'+e(zhCode(rec.domain))+'</b> 类运营任务，优先级 <b>'+e(Math.round(Number(rec.priority_score)||0))+'</b>，并在任务创建后进入 <b>24小时复核窗口</b>。</div></div><div class="approval-box"><div class="approval-label">选择负责人</div><div class="member-list">'+memberHtml+'</div></div></div></div><div class="modal-actions"><button class="btn gray" onclick="closeModal()">取消</button><button class="btn blue" id="confirmApproveBtn" onclick="submitApproval()">确认批准并生成任务</button></div></div></div>';
+    document.getElementById('approvalBackdrop').addEventListener('click',ev=>{if(ev.target.id==='approvalBackdrop')closeModal()});
+  }catch(z){
+    msg.innerHTML='<div class="msg">'+e(z.message)+'</div>';
+  }
+}
+async function submitApproval(){
+  const {rec,members,assigneeId}=approvalState;
+  if(!rec||!assigneeId)return;
+  const assignee=members.find(x=>x.user_id===assigneeId);
+  const btn=document.getElementById('confirmApproveBtn');
+  btn.disabled=true;btn.textContent='正在生成任务…';
+  try{
+    const d=await call('approve',{method:'POST',body:JSON.stringify({recommendation_id:rec.id,assignee_user_id:assigneeId})});
+    await load();
+    showApprovalSuccess(d.task,assignee,d.validation_due_at);
+  }catch(z){
+    btn.disabled=false;btn.textContent='确认批准并生成任务';
+    const old=document.getElementById('approvalError');if(old)old.remove();
+    const box=document.querySelector('.modal-body');
+    if(box)box.insertAdjacentHTML('afterbegin','<div id="approvalError" class="msg" style="margin:0 0 14px">'+e(z.message)+'</div>');
+  }
+}
+function showApprovalSuccess(task,assignee,validationDueAt){
+  const due=validationDueAt?new Date(validationDueAt).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}):'24小时后';
+  modalRoot.innerHTML='<div class="modal-backdrop"><div class="modal" style="width:min(620px,100%)"><div class="modal-body"><div class="success-wrap"><div class="success-icon">✓</div><div class="success-title">运营任务已创建</div><div class="success-sub">AI 总监建议已批准，任务已经进入 P0 运营任务系统。</div><div class="success-meta"><div><small>任务编号</small><b>#'+e(task?.task_no||'—')+'</b></div><div><small>负责人</small><b>'+e(task?.assignee||assignee?.display_name||'—')+'</b></div><div><small>复核时间</small><b>'+e(due)+'</b></div></div></div></div><div class="modal-actions"><button class="btn gray" onclick="closeModal()">继续留在总监页</button><button class="btn blue" onclick="goP0Main()">返回 P0 主系统</button></div></div></div>';
+}
+function goP0Main(){
+  closeModal();
+  try{
+    if(embedded&&window.parent&&window.parent!==window&&typeof window.parent.showMain==='function'){window.parent.showMain();return}
+  }catch{}
+  location.href='/p0-home.html';
+}
+async function rejectRec(id){if(!confirm('确认驳回这条建议？'))return;try{await call('reject',{method:'POST',body:JSON.stringify({recommendation_id:id})});await load()}catch(z){alert(z.message)}}
+runBtn.onclick=run;refreshBtn.onclick=load;load();
+</script>
+</body></html>

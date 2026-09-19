@@ -1,0 +1,10 @@
+.approval-box{border:1px solid #e5eaf1;border-radius:12px;padding:15px;background:#f8fafc}
+.approval-label{font-size:12px;color:#64748b;font-weight:700;margin-bottom:6px}
+.approval-text{font-size:14px;line-height:1.75;color:#334155}
+#actionFields{margin:0}
+#actionFields .form-grid{gap:14px}
+#workSubmitForm input[type="checkbox"]{width:16px;height:16px;accent-color:#2563eb}
+#workSubmitForm .helper{line-height:1.6}
+#workSubmitForm textarea.input{min-height:96px}
+#workSubmitForm .modal-body{padding-bottom:10px}
+@media(max-width:700px){#workSubmitForm .form-grid{grid-template-columns:1fr}}

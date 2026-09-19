@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TEMU 商品趋势测试</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}
+.app{max-width:1380px;margin:auto;padding:24px}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:center}
+.card{background:#fff;border:1px solid #e4e9f1;border-radius:16px;box-shadow:0 8px 28px rgba(25,40,65,.06);padding:18px}
+.controls{display:grid;grid-template-columns:1.2fr 2fr 1fr 1fr auto;gap:10px;align-items:end}
+.field{display:grid;gap:6px}.field label{font-size:13px;font-weight:700}
+.field input,.field select,button{font:inherit;padding:11px 12px;border-radius:10px}
+.field input,.field select{border:1px solid #d7dde8;background:#fff}
+button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.secondary{background:#e9edf4;color:#172033}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.chartbox{height:360px}
+.muted{color:#718096;font-size:14px}.notice,.err{padding:10px 12px;border-radius:10px;font-size:13px;margin-top:12px}
+.notice{background:#eef6ff;border:1px solid #cfe4ff;color:#34527a}.err{background:#fff1f2;color:#b42318}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.kpi{background:#fff;border:1px solid #e4e9f1;border-radius:14px;padding:14px}.kpi b{display:block;color:#64748b;font-size:12px;margin-bottom:4px}.kpi span{font-size:24px;font-weight:760}
+@media(max-width:900px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.chartbox{height:300px}.app{padding:14px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="top">
+    <div><h1 style="margin:0">TEMU 商品趋势</h1><div class="muted">独立测试模块 · 单日看小时，区间看按天</div></div>
+    <button id="back" class="secondary">返回经营系统</button>
+  </div>
+
+  <section class="card" style="margin-top:18px">
+    <div class="controls">
+      <div class="field"><label>店铺</label><select id="store"></select></div>
+      <div class="field"><label>商品</label><select id="product"></select></div>
+      <div class="field"><label>时间粒度</label><select id="range"><option value="day">单日</option><option value="7">近7天</option><option value="14">近14天</option><option value="30">近30天</option></select></div>
+      <div class="field"><label>结束日期 / 所选日</label><input id="date" type="date"></div>
+      <button id="load">加载趋势</button>
+    </div>
+    <div id="msg" class="notice">选择商品后加载。单日模式会自动对比昨日同小时。</div>
+  </section>
+
+  <section id="kpis" class="kpis"></section>
+
+  <section class="grid">
+    <div class="card"><h2 id="titleImp" style="margin:0 0 2px">曝光趋势</h2><div class="chartbox"><canvas id="impChart"></canvas></div></div>
+    <div class="card"><h2 id="titleOrd" style="margin:0 0 2px">订单趋势</h2><div class="chartbox"><canvas id="ordChart"></canvas></div></div>
+  </section>
+</main>
+<script>
+const SUPABASE_URL='https://iscadepgzegrvcqzosso.supabase.co';
+const KEY='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
+const API=SUPABASE_URL+'/functions/v1/temu-trends';
+const TODAY_RED='#ef4444';
+const YESTERDAY_BLUE='#3b82f6';
+const RANGE_RED='#ef4444';
+let tok=localStorage.getItem('temu_token')||'',dash=null,impChart=null,ordChart=null;
+const q=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const fmt=n=>n==null?'-':Number(n).toLocaleString();
+const shortDate=s=>s?`${Number(s.slice(5,7))}/${Number(s.slice(8,10))}`:'';
+function shanghaiToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
+function currentLabel(date){return date===shanghaiToday()?'今天数据':'所选日数据'}
+async function authFetch(u){const r=await fetch(u,{headers:{apikey:KEY,authorization:'Bearer '+tok}});if(r.status===401){location.href='/';throw new Error('登录已过期')}const d=await r.json();if(!r.ok)throw new Error(d.error||'请求失败');return d}
+async function getDash(){const u=SUPABASE_URL+'/functions/v1/temu-ops?api=dashboard';const r=await fetch(u,{headers:{apikey:KEY,authorization:'Bearer '+tok}});if(r.status===401){location.href='/';throw new Error('请先登录')}const d=await r.json();if(!r.ok)throw new Error(d.error||'读取店铺失败');return d}
+async function getProducts(storeId){const u=new URL(API);u.searchParams.set('mode','products');u.searchParams.set('store_id',storeId);return authFetch(u)}
+async function getTrend(){const u=new URL(API);u.searchParams.set('mode','trend');u.searchParams.set('store_id',q('store').value);u.searchParams.set('product_id',q('product').value);u.searchParams.set('range',q('range').value);if(q('date').value)u.searchParams.set('date',q('date').value);return authFetch(u)}
+function storeOptions(ss){return (ss||[]).map(s=>`<option value="${esc(s.id)}">${esc(s.store_name)}</option>`).join('')}
+function productOptions(ps){return (ps||[]).map(p=>`<option value="${esc(p.product_id)}">${esc(p.product_id)}${p.product_name?' · '+esc(p.product_name.slice(0,60)):''}</option>`).join('')}
+async function loadProducts(){const d=await getProducts(q('store').value);q('product').innerHTML=productOptions(d.products);if(!d.products.length)q('msg').textContent='这个店铺暂无已纳管商品。'}
+function mkChart(canvas,labels,datasets){
+  return new Chart(canvas,{type:'line',data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    elements:{line:{borderWidth:2.5},point:{radius:0,hoverRadius:4}},
+    plugins:{
+      legend:{display:true,position:'top',align:'start',labels:{usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:16,font:{size:12,weight:'600'}}},
+      tooltip:{callbacks:{label(ctx){const ds=ctx.dataset;const date=ds.metaDate?` ${shortDate(ds.metaDate)}`:'';return `${ds.label}${date}：${ctx.formattedValue}`}}}
+    },
+    scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{precision:0}}}
+  }})
+}
+function kpi(label,value,sub=''){return `<div class="kpi"><b>${esc(label)}</b><span>${esc(value)}</span>${sub?`<div class="muted">${esc(sub)}</div>`:''}</div>`}
+function sum(arr,key){return arr.reduce((a,r)=>a+(Number(r[key])||0),0)}
+function pct(a,b){if(b==null||Number(b)===0)return null;return (Number(a)-Number(b))/Number(b)*100}
+function deltaText(a,b){const p=pct(a,b);return p==null?'无可比基线':`${p>=0?'+':''}${p.toFixed(1)}%`}
+function renderDay(d){
+  const labels=Array.from({length:24},(_,h)=>String(h).padStart(2,'0')+':00');
+  const ci=d.current.map(x=>x.impressions),pi=d.previous.map(x=>x.impressions),co=d.current.map(x=>x.orders),po=d.previous.map(x=>x.orders);
+  const curName=currentLabel(d.date);
+  q('titleImp').textContent=`小时曝光（${shortDate(d.date)} vs ${shortDate(d.compare_date)}）`;
+  q('titleOrd').textContent=`小时订单（${shortDate(d.date)} vs ${shortDate(d.compare_date)}）`;
+  if(impChart)impChart.destroy();if(ordChart)ordChart.destroy();
+  const currentStyle={label:curName,metaDate:d.date,borderColor:TODAY_RED,backgroundColor:TODAY_RED,pointBackgroundColor:TODAY_RED,pointBorderColor:TODAY_RED,data:ci,tension:.25,spanGaps:true};
+  const previousStyle={label:'昨天数据',metaDate:d.compare_date,borderColor:YESTERDAY_BLUE,backgroundColor:YESTERDAY_BLUE,pointBackgroundColor:YESTERDAY_BLUE,pointBorderColor:YESTERDAY_BLUE,data:pi,tension:.25,spanGaps:true};
+  impChart=mkChart(q('impChart'),labels,[currentStyle,previousStyle]);
+  ordChart=mkChart(q('ordChart'),labels,[{...currentStyle,data:co},{...previousStyle,data:po}]);
+  const curImp=ci.reduce((a,v)=>a+(Number(v)||0),0),preImp=pi.reduce((a,v)=>a+(Number(v)||0),0),curOrd=co.reduce((a,v)=>a+(Number(v)||0),0),preOrd=po.reduce((a,v)=>a+(Number(v)||0),0);
+  q('kpis').innerHTML=kpi(curName+'曝光',fmt(curImp),`较昨日 ${deltaText(curImp,preImp)}`)+kpi('昨日曝光',fmt(preImp))+kpi(curName+'订单',fmt(curOrd),`较昨日 ${deltaText(curOrd,preOrd)}`)+kpi('昨日订单',fmt(preOrd));
+  q('msg').textContent=`单日模式：红色=${curName}（${d.date}），蓝色=昨天数据（${d.compare_date}）。`;
+}
+function renderRange(d){
+  const labels=d.rows.map(x=>x.date.slice(5)),imps=d.rows.map(x=>x.impressions),ords=d.rows.map(x=>x.orders);
+  q('titleImp').textContent=`近${d.days}天曝光趋势（按天）`;q('titleOrd').textContent=`近${d.days}天订单趋势（按天）`;
+  if(impChart)impChart.destroy();if(ordChart)ordChart.destroy();
+  const style={label:'区间数据',borderColor:RANGE_RED,backgroundColor:RANGE_RED,pointBackgroundColor:RANGE_RED,pointBorderColor:RANGE_RED,borderWidth:2.5,tension:.25,spanGaps:true};
+  impChart=mkChart(q('impChart'),labels,[{...style,data:imps}]);ordChart=mkChart(q('ordChart'),labels,[{...style,data:ords}]);
+  const totalImp=sum(d.rows,'impressions'),totalOrd=sum(d.rows,'orders'),valid=d.rows.filter(x=>x.impressions!=null||x.orders!=null).length;
+  q('kpis').innerHTML=kpi(`${d.days}天曝光`,fmt(totalImp),`${valid}个有数据日`)+kpi('日均曝光',valid?fmt(Math.round(totalImp/valid)):'-')+kpi(`${d.days}天订单`,fmt(totalOrd))+kpi('日均订单',valid?(totalOrd/valid).toFixed(1):'-');
+  q('msg').textContent=`区间模式：${d.start_date} 至 ${d.end_date}，按天展示曝光与订单趋势。`;
+}
+async function loadTrend(){try{q('msg').className='notice';q('msg').textContent='正在读取趋势数据...';const d=await getTrend();d.mode==='day'?renderDay(d):renderRange(d)}catch(e){q('msg').className='err';q('msg').textContent=e.message}}
+q('back').onclick=()=>location.href='/';q('store').onchange=async()=>{await loadProducts();await loadTrend()};q('range').onchange=loadTrend;q('date').onchange=loadTrend;q('load').onclick=loadTrend;
+(async()=>{try{if(!tok){location.href='/';return}dash=await getDash();q('store').innerHTML=storeOptions(dash.stores);if(dash.latest_hourly_date)q('date').value=dash.latest_hourly_date;await loadProducts();await loadTrend()}catch(e){q('msg').className='err';q('msg').textContent=e.message}})();
+</script>
+</body>
+</html>
