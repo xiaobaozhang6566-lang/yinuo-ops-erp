@@ -116,11 +116,31 @@ function translateOpsText(v){
 function sevClass(s){return s==='CRITICAL'?'critical':s==='WARNING'?'warning':s==='WATCH'?'watch':''}
 function renderRec(r){
   const st=r.approval_status||'PENDING';
-  return '<div class="rec"><div class="row"><span class="score">'+e(Math.round(Number(r.priority_score)||0))+'</span><span class="pill '+sevClass(r.severity)+'">'+e(zhCode(r.severity))+'</span><span class="pill">'+e(zhCode(r.domain))+'</span><span class="pill status">'+e(zhCode(st))+'</span></div><div class="title">'+e(translateOpsText(r.title))+'</div><div class="muted">'+e(translateOpsText(r.rationale||''))+'</div><div class="action"><b>建议动作：</b>'+e(translateOpsText(r.recommended_action||'—'))+'</div>'+(st==='PENDING'?'<div class="rec-actions"><button class="btn green" onclick="approveRec(\''+r.id+'\')">批准并生成任务</button><button class="btn red" onclick="rejectRec(\''+r.id+'\')">驳回</button></div>':(r.task_id?'<div class="muted" style="margin-top:10px">已生成任务</div>':''))+'</div>'
+  const mainProblem=translateOpsText(r.rationale||'待核查');
+  return '<div class="rec"><div class="row"><span class="pill"><b>优先级 '+e(Math.round(Number(r.priority_score)||0))+'</b></span><span class="pill '+sevClass(r.severity)+'">'+e(zhCode(r.severity))+'</span><span class="pill">'+e(zhCode(r.domain))+'</span><span class="pill status">'+e(zhCode(st))+'</span></div><div class="title">'+e(translateOpsText(r.title))+'</div><div class="action"><b>主要问题：</b>'+e(mainProblem)+'</div><div class="action"><b>建议动作：</b>'+e(translateOpsText(r.recommended_action||'—'))+'</div>'+(st==='PENDING'?'<div class="rec-actions"><button class="btn green" onclick="approveRec(\''+r.id+'\')">批准并生成任务</button><button class="btn red" onclick="rejectRec(\''+r.id+'\')">驳回</button></div>':(r.task_id?'<div class="muted" style="margin-top:10px">已生成运营任务，可在 P0 主系统查看。</div>':''))+'</div>'
 }
 async function load(){try{const s=await call('status');pending.textContent=s.pending;approved.textContent=s.approved;const b=await call('brief');currentRun=b.run;date.textContent=b.run?.business_date||'—';headline.textContent=b.run?.summary?.headline||'尚未运行总监巡检';const rs=b.recommendations||[];high.textContent=rs.filter(x=>Number(x.priority_score)>=80).length;list.innerHTML=rs.length?rs.map(renderRec).join(''):'<div class="empty">暂无总监建议。点击“运行今日巡检”开始。</div>'}catch(z){msg.innerHTML='<div class="msg">'+e(z.message)+'</div>';list.innerHTML='<div class="empty">无法加载总监数据</div>'}}
 async function run(){runBtn.disabled=true;runBtn.textContent='巡检中…';msg.innerHTML='';try{const d=await call('run',{method:'POST',body:'{}'});msg.innerHTML='<div class="msg">巡检完成：'+e(d.summary?.headline||'已完成')+'</div>';await load()}catch(z){msg.innerHTML='<div class="msg">'+e(z.message)+'</div>'}finally{runBtn.disabled=false;runBtn.textContent='运行今日巡检'}}
-async function approveRec(id){if(!confirm('批准后将正式生成运营任务，继续吗？'))return;try{const d=await call('approve',{method:'POST',body:JSON.stringify({recommendation_id:id})});msg.innerHTML='<div class="msg">已生成任务 #'+e(d.task?.task_no||'')+'</div>';await load()}catch(z){alert(z.message)}}
+async function approveRec(id){
+  try{
+    const m=await call('members');
+    const members=(m.members||[]).filter(x=>x.is_active);
+    if(!members.length){alert('当前没有可分配的运营成员。');return}
+    const rec=(await call('brief')).recommendations?.find(x=>x.id===id);
+    const defaultId=rec?.assignee_user_id||members[0].user_id;
+    const lines=members.map((x,i)=>String(i+1)+'. '+x.display_name+(x.role==='manager'?'（管理员）':'')).join('\n');
+    const currentIndex=Math.max(0,members.findIndex(x=>x.user_id===defaultId));
+    const raw=prompt('请选择任务负责人，输入序号：\n'+lines,String(currentIndex+1));
+    if(raw===null)return;
+    const idx=Number(raw)-1;
+    if(!Number.isInteger(idx)||idx<0||idx>=members.length){alert('负责人序号无效。');return}
+    const assignee=members[idx];
+    if(!confirm('确认批准该建议，并生成给【'+assignee.display_name+'】的正式运营任务？'))return;
+    const d=await call('approve',{method:'POST',body:JSON.stringify({recommendation_id:id,assignee_user_id:assignee.user_id})});
+    msg.innerHTML='<div class="msg">已生成任务 #'+e(d.task?.task_no||'')+' · 负责人：'+e(d.task?.assignee||assignee.display_name)+' · 24小时后进入复核窗口</div>';
+    await load();
+  }catch(z){alert(z.message)}
+}
 async function rejectRec(id){if(!confirm('确认驳回这条建议？'))return;try{await call('reject',{method:'POST',body:JSON.stringify({recommendation_id:id})});await load()}catch(z){alert(z.message)}}
 runBtn.onclick=run;refreshBtn.onclick=load;load();
 </script>
