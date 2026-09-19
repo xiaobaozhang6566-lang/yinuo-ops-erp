@@ -26,9 +26,21 @@
 </div>
 <script>
 const q=id=>document.getElementById(id);
-function showMain(){q('mainTab').classList.add('active');q('dashTab').classList.remove('active');q('mainFrame').src='/index.html?embedded=1&build=p0-shell-20260915'}
-function showDashboard(){location.href='/product-dashboard-v2.html'}
-function showDirector(){location.href='/director-agent.html'}
+function activateTab(id){
+  ['mainTab','dashTab','directorTab'].forEach(function(x){q(x).classList.toggle('active',x===id)});
+}
+function showMain(){
+  activateTab('mainTab');
+  q('mainFrame').src='/index.html?embedded=1&build=p0-shell-20260919';
+}
+function showDashboard(){
+  activateTab('dashTab');
+  q('mainFrame').src='/product-dashboard-v2.html?embedded=1&build=p0-shell-20260919';
+}
+function showDirector(){
+  activateTab('directorTab');
+  q('mainFrame').src='/director-agent.html?embedded=1&build=p0-shell-20260919';
+}
 q('mainTab').onclick=showMain;
 q('dashTab').onclick=showDashboard;
 q('directorTab').onclick=showDirector;
