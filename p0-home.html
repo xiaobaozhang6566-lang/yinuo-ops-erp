@@ -16,7 +16,7 @@
       <div class="brand">亦诺跨境 · TEMU 商品智能运营 <span class="version">独立测试</span></div>
       <nav class="tabs">
         <button id="mainTab" class="tab active">P0主系统</button>
-        <button id="dashTab" class="tab">商品经营驾驶舱</button>
+        <button id="dashTab" class="tab">商品经营驾驶舱</button>\n        <button id="directorTab" class="tab">AI 跨境运营总监</button>
       </nav>
     </div>
     <div class="hint">数据上传 → 状态变更 → 实验 → 商品经营决策</div>
@@ -26,9 +26,9 @@
 <script>
 const q=id=>document.getElementById(id);
 function showMain(){q('mainTab').classList.add('active');q('dashTab').classList.remove('active');q('mainFrame').src='/index.html?embedded=1&build=p0-shell-20260915'}
-function showDashboard(){location.href='/product-dashboard-v2.html'}
+function showDashboard(){location.href='/product-dashboard-v2.html'}\nfunction showDirector(){location.href='/director-agent.html'}
 q('mainTab').onclick=showMain;
-q('dashTab').onclick=showDashboard;
+q('dashTab').onclick=showDashboard;\nq('directorTab').onclick=showDirector;
 </script>
 </body>
 </html>
