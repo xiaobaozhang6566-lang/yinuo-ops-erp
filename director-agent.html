@@ -69,8 +69,55 @@ async function call(api,opt={},retried=false){
   if(!r.ok)throw new Error(d.error||'请求失败');
   return d
 }
+const CODE_ZH={
+  CRITICAL:'严重',WARNING:'警告',WATCH:'观察',INFO:'提示',
+  HIGH:'高',MEDIUM:'中',LOW:'低',
+  PENDING:'待审批',APPROVED:'已批准',REJECTED:'已驳回',
+  AD_GROWTH:'广告增长',PRODUCT:'商品经营',INVENTORY:'库存管理',PROFIT:'利润管理',AFTERSALES:'售后管理',OPERATIONS:'综合运营',
+  TRAFFIC_VOLUME_DECLINE:'流量规模下降',
+  TRAFFIC_DILUTION:'流量稀释',
+  CONVERSION_PROBLEM:'转化异常',
+  CLICK_PROBLEM:'点击异常',
+  POST_CART_CONVERSION_WEAKNESS:'加购后成交偏弱',
+  SCALE_CANDIDATE:'可放量候选',
+  HOLD_OBSERVE:'继续观察',
+  LOW_SAMPLE:'样本不足',
+  DATA_ISSUE:'数据异常',
+  TRAFFIC:'流量',
+  CONVERSION:'转化',
+  CLICK:'点击',
+  CART:'加购',
+  PRICE:'价格',
+  ROI_TARGET:'投产比目标',
+  BUDGET:'预算',
+  CAMPAIGN:'活动',
+  INVENTORY_DRIVER:'库存',
+  AFTERSALES_DRIVER:'售后',
+  PROFIT_DRIVER:'利润'
+};
+function zhCode(v){
+  const s=String(v??'');
+  return CODE_ZH[s]||s;
+}
+function translateOpsText(v){
+  let s=String(v??'');
+  Object.keys(CODE_ZH).sort((a,b)=>b.length-a.length).forEach(k=>{
+    s=s.replace(new RegExp('\\b'+k+'\\b','g'),CODE_ZH[k]);
+  });
+  return s
+    .replace(/净ROAS/g,'净投产比')
+    .replace(/ROAS/g,'广告投产比')
+    .replace(/ROI目标/g,'投产比目标')
+    .replace(/ROI/g,'投产比')
+    .replace(/CVR/g,'转化率')
+    .replace(/CTR/g,'点击率')
+    .replace(/SPU/g,'款式编码');
+}
 function sevClass(s){return s==='CRITICAL'?'critical':s==='WARNING'?'warning':s==='WATCH'?'watch':''}
-function renderRec(r){const st=r.approval_status||'PENDING';return '<div class="rec"><div class="row"><span class="score">'+e(Math.round(Number(r.priority_score)||0))+'</span><span class="pill '+sevClass(r.severity)+'">'+e(r.severity)+'</span><span class="pill">'+e(r.domain)+'</span><span class="pill status">'+e(st)+'</span></div><div class="title">'+e(r.title)+'</div><div class="muted">'+e(r.rationale||'')+'</div><div class="action"><b>建议动作：</b>'+e(r.recommended_action||'—')+'</div>'+(st==='PENDING'?'<div class="rec-actions"><button class="btn green" onclick="approveRec(\''+r.id+'\')">批准并生成任务</button><button class="btn red" onclick="rejectRec(\''+r.id+'\')">驳回</button></div>':(r.task_id?'<div class="muted" style="margin-top:10px">已生成任务</div>':''))+'</div>'}
+function renderRec(r){
+  const st=r.approval_status||'PENDING';
+  return '<div class="rec"><div class="row"><span class="score">'+e(Math.round(Number(r.priority_score)||0))+'</span><span class="pill '+sevClass(r.severity)+'">'+e(zhCode(r.severity))+'</span><span class="pill">'+e(zhCode(r.domain))+'</span><span class="pill status">'+e(zhCode(st))+'</span></div><div class="title">'+e(translateOpsText(r.title))+'</div><div class="muted">'+e(translateOpsText(r.rationale||''))+'</div><div class="action"><b>建议动作：</b>'+e(translateOpsText(r.recommended_action||'—'))+'</div>'+(st==='PENDING'?'<div class="rec-actions"><button class="btn green" onclick="approveRec(\''+r.id+'\')">批准并生成任务</button><button class="btn red" onclick="rejectRec(\''+r.id+'\')">驳回</button></div>':(r.task_id?'<div class="muted" style="margin-top:10px">已生成任务</div>':''))+'</div>'
+}
 async function load(){try{const s=await call('status');pending.textContent=s.pending;approved.textContent=s.approved;const b=await call('brief');currentRun=b.run;date.textContent=b.run?.business_date||'—';headline.textContent=b.run?.summary?.headline||'尚未运行总监巡检';const rs=b.recommendations||[];high.textContent=rs.filter(x=>Number(x.priority_score)>=80).length;list.innerHTML=rs.length?rs.map(renderRec).join(''):'<div class="empty">暂无总监建议。点击“运行今日巡检”开始。</div>'}catch(z){msg.innerHTML='<div class="msg">'+e(z.message)+'</div>';list.innerHTML='<div class="empty">无法加载总监数据</div>'}}
 async function run(){runBtn.disabled=true;runBtn.textContent='巡检中…';msg.innerHTML='';try{const d=await call('run',{method:'POST',body:'{}'});msg.innerHTML='<div class="msg">巡检完成：'+e(d.summary?.headline||'已完成')+'</div>';await load()}catch(z){msg.innerHTML='<div class="msg">'+e(z.message)+'</div>'}finally{runBtn.disabled=false;runBtn.textContent='运行今日巡检'}}
 async function approveRec(id){if(!confirm('批准后将正式生成运营任务，继续吗？'))return;try{const d=await call('approve',{method:'POST',body:JSON.stringify({recommendation_id:id})});msg.innerHTML='<div class="msg">已生成任务 #'+e(d.task?.task_no||'')+'</div>';await load()}catch(z){alert(z.message)}}
