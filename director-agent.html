@@ -20,6 +20,7 @@
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid #edf1f6}.btn:disabled{opacity:.55;cursor:not-allowed}
 .success-wrap{text-align:center;padding:8px 8px 2px}.success-icon{width:58px;height:58px;border-radius:50%;background:#dcfce7;color:#166534;display:grid;place-items:center;margin:0 auto 14px;font-size:30px;font-weight:900}
 .success-title{font-size:21px;font-weight:850}.success-sub{color:#64748b;margin-top:7px;line-height:1.6}.success-meta{margin:18px 0 4px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left}.success-meta>div{background:#f8fafc;border-radius:10px;padding:11px}.success-meta small{display:block;color:#64748b;margin-bottom:4px}
+.validation-grid{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:10px;margin-bottom:14px}.validation-kpi{background:#f8fafc;border:1px solid #e5eaf1;border-radius:11px;padding:11px}.validation-kpi small{display:block;color:#64748b}.validation-kpi b{font-size:20px;display:block;margin-top:4px}.validation-list{display:grid;gap:10px}.validation-item{border:1px solid #e5eaf1;border-radius:12px;padding:13px;background:#fff}.validation-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.validation-main{font-weight:800}.validation-sub{font-size:13px;color:#64748b;margin-top:5px}.validation-action{margin-top:9px;font-size:14px;line-height:1.6}.vtag{font-size:12px;padding:4px 8px;border-radius:999px;font-weight:750}.v-wait{background:#eef2f7;color:#475569}.v-good{background:#dcfce7;color:#166534}.v-bad{background:#fee2e2;color:#991b1b}.v-warn{background:#fef3c7;color:#92400e}.v-neutral{background:#e0e7ff;color:#3730a3}
 @media(max-width:700px){.wrap{padding:12px}.top{padding:0 12px}.hint{display:none}.card{flex:1;min-width:44%}.approval-grid{grid-template-columns:1fr}.modal-backdrop{padding:10px}.success-meta{grid-template-columns:1fr}}
 </style>
 </head>
@@ -45,6 +46,7 @@
  </div>
 </div>
 <div id="msg"></div>
+<section class="panel"><div class="head"><div><b>AI 动作效果验证</b><div class="muted" style="margin-top:4px">运营提交动作后，持续跟踪 24H / 72H / 7D 效果</div></div></div><div class="body"><div class="validation-grid"><div class="validation-kpi"><small>验证记录</small><b id="valTotal">—</b></div><div class="validation-kpi"><small>等待验证</small><b id="valWaiting">—</b></div><div class="validation-kpi"><small>有效</small><b id="valEffective">—</b></div><div class="validation-kpi"><small>无明显效果 / 负向</small><b id="valNoEffect">—</b></div><div class="validation-kpi"><small>多变量干扰</small><b id="valContaminated">—</b></div></div><div id="validationList" class="validation-list"></div></div></section>
 <section class="panel"><div class="head"><div><b>总监经营简报</b><div class="muted" id="headline" style="margin-top:4px">加载中…</div></div><button class="btn gray" id="refreshBtn">刷新</button></div><div class="body" id="list"></div></section>
 </main>
 <div id="modalRoot"></div>
@@ -165,9 +167,25 @@ function renderTaskProgress(d){
   const rows=d.recent||[];
   recentTasks.innerHTML=rows.length?rows.map(x=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:9px;background:#f8fafc"><div style="min-width:0"><b>#'+e(x.task_no||'—')+' · '+e(x.assignee||'未分配')+'</b><span class="muted"> · '+e(x.store_name||'')+' · '+e(x.spu||'')+'</span></div>'+taskStatusPill(x.status)+'</div>').join(''):'<div class="muted" style="font-size:13px">暂无已派发任务</div>';
 }
+function validationToneClass(t){return t==='good'?'v-good':t==='bad'?'v-bad':t==='warn'?'v-warn':t==='neutral'?'v-neutral':'v-wait'}
+function fmtCheckTime(x){return x?new Date(x).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}):'—'}
+function renderValidation(d){
+  const c=d.counts||{};
+  valTotal.textContent=c.total??0;
+  valWaiting.textContent=c.waiting??0;
+  valEffective.textContent=c.effective??0;
+  valNoEffect.textContent=(Number(c.no_effect)||0)+(Number(c.negative)||0);
+  valContaminated.textContent=c.contaminated??0;
+  const rows=d.recent||[];
+  validationList.innerHTML=rows.length?rows.map(x=>{
+    const extra=x.multi_variable?' · 同步调整：'+e(x.sync_items||'有'):'';
+    const next=x.next_check_at?'<div class="validation-sub">下一复核：'+e(fmtCheckTime(x.next_check_at))+'</div>':'';
+    return '<div class="validation-item"><div class="validation-top"><div><div class="validation-main">#'+e(x.task_no||'—')+' · '+e(x.store_name||'')+' · '+e(x.product_id||'')+'</div><div class="validation-sub">负责人：'+e(x.assignee||'—')+' · 任务状态：'+e(x.task_status||'—')+extra+'</div></div><span class="vtag '+validationToneClass(x.validation_tone)+'">'+e(x.validation_status||'等待验证')+'</span></div><div class="validation-action"><b>执行动作：</b>'+e(x.action_summary||'—')+'</div>'+next+(x.validation_note?'<div class="validation-sub">AI判断：'+e(x.validation_note)+'</div>':'')+'</div>'
+  }).join(''):'<div class="empty">暂无动作验证记录。运营提交执行动作后会自动出现在这里。</div>';
+}
 async function load(){
   try{
-    const [s,b,tp]=await Promise.all([call('status'),call('brief'),call('task-progress')]);
+    const [s,b,tp,vr]=await Promise.all([call('status'),call('brief'),call('task-progress'),call('validation-results')]);
     pending.textContent=s.pending;approved.textContent=s.approved;
     currentRun=b.run;date.textContent=b.run?.business_date||'—';
     headline.textContent=b.run?.summary?.headline||'尚未运行总监巡检';
@@ -175,6 +193,7 @@ async function load(){
     high.textContent=rs.filter(x=>Number(x.priority_score)>=80).length;
     list.innerHTML=rs.length?rs.map(renderRec).join(''):'<div class="empty">暂无总监建议。点击“运行今日巡检”开始。</div>';
     renderTaskProgress(tp);
+    renderValidation(vr);
   }catch(z){
     msg.innerHTML='<div class="msg">'+e(z.message)+'</div>';
     list.innerHTML='<div class="empty">无法加载总监数据</div>';
