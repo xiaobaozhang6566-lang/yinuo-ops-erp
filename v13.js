@@ -3,8 +3,8 @@
   var STATUS_DOING='处理中';
   var STATUS_DONE='已完成';
   var QUICK=['已检查，无异常','已调整完成','已处理完成','需继续跟进'];
-  function syncVersion(){document.querySelectorAll('.top small').forEach(function(n){if(n.textContent!=='V1.3')n.textContent='V1.3'});document.querySelectorAll('.box .muted').forEach(function(n){if(n.textContent.indexOf('V1.2')>=0)n.textContent=n.textContent.replace('V1.2','V1.3')})}
-  var observer=new MutationObserver(syncVersion);observer.observe(document.documentElement,{childList:true,subtree:true});syncVersion();
+  function syncVersion(){document.querySelectorAll('.box .muted').forEach(function(n){if(n.textContent.indexOf('V1.2')>=0)n.textContent=n.textContent.replace('V1.2','V1.4')})}
+  syncVersion();
   window.closeProcessForm=function(){modalRoot.innerHTML=''};
   function selectedStatus(){var checked=document.querySelector('input[name="process_status"]:checked');return checked?checked.value:''}
   function refreshStatusCards(){document.querySelectorAll('.status-choice').forEach(function(card){var input=card.querySelector('input[name="process_status"]');card.classList.toggle('selected',!!(input&&input.checked))})}

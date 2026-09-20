@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>TEMU 美区 · P0 主系统</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.shell{height:100vh;display:flex;flex-direction:column}.nav{height:60px;flex:0 0 60px;background:#fff;border-bottom:1px solid #e4e9f1;box-shadow:0 2px 10px rgba(25,40,65,.04);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:16px}.left{display:flex;align-items:center;gap:16px}.brand{font-size:17px;font-weight:800;white-space:nowrap}.version{font-size:12px;color:#718096;font-weight:600}.tabs{display:flex;gap:8px}.tab{font:inherit;border:0;border-radius:10px;padding:10px 15px;font-weight:750;cursor:pointer;background:#e9edf4;color:#172033}.tab.active{background:#111827;color:#fff}.hint{font-size:13px;color:#718096}.frame{flex:1;min-height:0}.frame iframe{width:100%;height:100%;border:0;display:block;background:#f4f7fb}@media(max-width:760px){.nav{height:auto;min-height:60px;padding:8px 10px;align-items:flex-start}.left{flex-direction:column;align-items:flex-start;gap:6px}.brand{font-size:14px}.hint{display:none}.tab{padding:8px 10px;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="nav">
+    <div class="left">
+      <div class="brand">亦诺跨境 · TEMU 商品智能运营 <span class="version">独立测试</span></div>
+      <nav class="tabs">
+        <button id="mainTab" class="tab active">P0主系统</button>
+        <button id="dashTab" class="tab">商品经营驾驶舱</button>
+        <button id="directorTab" class="tab">AI 跨境运营总监</button>
+        <button id="masterDataTab" class="tab">基础配对</button>
+      </nav>
+    </div>
+    <div class="hint">数据上传 → 状态变更 → 实验 → 商品经营决策</div>
+  </header>
+  <div class="frame"><iframe id="mainFrame" src="/task-erp.html?embedded=1&build=p0-task-v15"></iframe></div>
+</div>
+<script>
+const q=id=>document.getElementById(id);
+function activateTab(id){
+  ['mainTab','dashTab','directorTab','masterDataTab'].forEach(function(x){q(x).classList.toggle('active',x===id)});
+}
+function showMain(){
+  activateTab('mainTab');
+  q('mainFrame').src='/task-erp.html?embedded=1&build=p0-task-v15';
+}
+function showDashboard(){
+  activateTab('dashTab');
+  q('mainFrame').src='/product-dashboard-v2.html?embedded=1&build=p0-shell-20260919';
+}
+function showDirector(){
+  activateTab('directorTab');
+  q('mainFrame').src='/director-agent.html?embedded=1&build=p0-shell-20260919';
+}
+function showMasterData(){
+  activateTab('masterDataTab');
+  q('mainFrame').src='/master-data.html?embedded=1&build=p0-master-v1';
+}
+q('mainTab').onclick=showMain;
+q('dashTab').onclick=showDashboard;
+q('directorTab').onclick=showDirector;
+q('masterDataTab').onclick=showMasterData;
+</script>
+</body>
+</html>

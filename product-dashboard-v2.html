@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>TEMU 美区 商品经营驾驶舱 P0-8.5</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.center{min-height:100%;display:grid;place-items:center;padding:20px}.box{width:min(440px,100%);background:#fff;border:1px solid #e4e9f1;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(25,40,65,.06)}h1{font-size:24px;margin:0 0 8px}.muted{color:#718096;font-size:14px}.notice{margin-top:14px;padding:10px 12px;border-radius:10px;background:#eef6ff;border:1px solid #cfe4ff;color:#34527a;font-size:13px}.err{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff1f2;color:#b42318;font-size:13px}.form{display:grid;gap:10px;margin-top:18px}input,button{font:inherit;padding:11px 12px;border-radius:10px}input{border:1px solid #d7dde8;background:#fff}button{border:0;background:#111827;color:#fff;font-weight:700;cursor:pointer}.hide{display:none!important}.shell{height:100vh;display:flex;flex-direction:column;background:#f4f7fb}.shellnav{height:58px;flex:0 0 58px;display:flex;justify-content:space-between;align-items:center;gap:14px;padding:0 18px;background:#fff;border-bottom:1px solid #e4e9f1;box-shadow:0 2px 10px rgba(25,40,65,.04)}.navleft{display:flex;align-items:center;gap:14px}.brand{font-weight:800;font-size:17px;white-space:nowrap}.navtabs{display:flex;gap:8px}.navtab{background:#e9edf4;color:#172033;padding:9px 14px}.navtab.active{background:#111827;color:#fff}.navback{background:#e9edf4;color:#172033;padding:9px 14px}.framebox{flex:1;min-height:0}.framebox iframe{display:block;border:0;width:100%;height:100%;background:#f4f7fb}@media(max-width:700px){.shellnav{height:auto;min-height:58px;padding:8px 10px;align-items:flex-start}.navleft{align-items:flex-start;flex-direction:column;gap:6px}.brand{font-size:14px}.navtab,.navback{padding:8px 10px;font-size:13px}}
+</style>
+</head>
+<body>
+<div id="gate" class="center">
+  <section class="box">
+    <h1>TEMU 美区 商品经营驾驶舱</h1>
+    <div id="sub" class="muted">正在验证登录状态…</div>
+    <div id="loginNotice" class="notice hide">登录凭证已过期。请重新登录一次；系统会保存续期凭证，后续自动续期。</div>
+    <form id="loginForm" class="form hide">
+      <input id="email" type="email" placeholder="邮箱" required>
+      <input id="password" type="password" placeholder="密码" required>
+      <button id="loginBtn" type="submit">登录并进入驾驶舱</button>
+    </form>
+    <div id="err" class="err hide"></div>
+  </section>
+</div>
+<div id="frameWrap" class="hide"></div>
+<script>
+const SUPABASE_URL='https://iscadepgzegrvcqzosso.supabase.co';
+const KEY='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
+const API=SUPABASE_URL+'/functions/v1/temu-ops';
+const q=id=>document.getElementById(id);
+let refreshTimer=null;
+
+function saveSession(d){
+  if(d.access_token)localStorage.setItem('temu_token',d.access_token);
+  if(d.refresh_token)localStorage.setItem('temu_refresh_token',d.refresh_token);
+  const expiresAt=d.expires_at?Number(d.expires_at)*1000:(d.expires_in?Date.now()+Number(d.expires_in)*1000:null);
+  if(expiresAt)localStorage.setItem('temu_expires_at',String(expiresAt));
+}
+function clearSession(){localStorage.removeItem('temu_token');localStorage.removeItem('temu_refresh_token');localStorage.removeItem('temu_expires_at');}
+async function tokenRequest(grant,body){
+  const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type='+grant,{method:'POST',headers:{'content-type':'application/json','apikey':KEY},body:JSON.stringify(body)});
+  const d=await r.json();if(!r.ok)throw new Error(d.error_description||d.msg||d.error||'登录失败');saveSession(d);return d;
+}
+async function refreshSession(){const rt=localStorage.getItem('temu_refresh_token');if(!rt)throw new Error('NO_REFRESH_TOKEN');return tokenRequest('refresh_token',{refresh_token:rt});}
+async function validateAccess(){
+  let token=localStorage.getItem('temu_token')||'';if(!token)return false;
+  let r=await fetch(API+'?api=dashboard',{headers:{apikey:KEY,authorization:'Bearer '+token},cache:'no-store'});if(r.ok)return true;if(r.status!==401)return false;
+  try{await refreshSession();token=localStorage.getItem('temu_token')||'';r=await fetch(API+'?api=dashboard',{headers:{apikey:KEY,authorization:'Bearer '+token},cache:'no-store'});return r.ok}catch{return false}
+}
+function showLogin(msg='登录凭证已过期。请重新登录一次；之后系统会自动续期。'){q('sub').textContent='需要重新认证';q('loginNotice').textContent=msg;q('loginNotice').classList.remove('hide');q('loginForm').classList.remove('hide');}
+function scheduleRefresh(){
+  if(refreshTimer)clearTimeout(refreshTimer);const exp=Number(localStorage.getItem('temu_expires_at')||0);if(!exp||!localStorage.getItem('temu_refresh_token'))return;
+  const wait=Math.max(60000,exp-Date.now()-5*60*1000);refreshTimer=setTimeout(async()=>{try{await refreshSession();scheduleRefresh();const frame=document.getElementById('dashFrame');if(frame)frame.contentWindow.location.reload()}catch{clearSession();location.reload()}},wait);
+}
+
+const DIAGNOSIS_MAP={POST_CART_CONVERSION_WEAKNESS:'加购后成交偏弱',SCALE_CANDIDATE:'可放量候选',HOLD_OBSERVE:'继续观察',LOW_SAMPLE:'样本不足',TRAFFIC_DILUTION:'流量稀释',CONVERSION_PROBLEM:'转化异常',CLICK_PROBLEM:'点击异常',TRAFFIC_VOLUME_DECLINE:'流量规模下降',DATA_ISSUE:'数据异常'};
+const EXACT_MAP={CRITICAL:'严重异常',WARNING:'警告',INFO:'提示',WATCH:'观察',HIGH:'高',MEDIUM:'中',LOW:'低',RUNNING:'进行中',COMPLETED:'已完成',OPEN:'待处理',OBSERVING:'观察中',CONTAMINATED:'实验受污染',CLEAN:'单变量干净',NORMAL:'正常',PARTIAL:'部分售罄',SOLDOUT:'已售罄',OOS:'缺货',ORDERS:'订单',IMPRESSIONS:'曝光',CLICKS:'点击',SALES:'销售额',WIN:'有效',LOSS:'失败',NO_EFFECT:'无明显效果',INCONCLUSIVE:'数据不足'};
+function translateText(text){
+  let s=String(text||'');for(const [k,v] of Object.entries(DIAGNOSIS_MAP))s=s.split(k).join(v);for(const [k,v] of Object.entries(EXACT_MAP))s=s.replace(new RegExp('\\b'+k+'\\b','g'),v);
+  return s.replace(/Priority\s*/g,'处理优先级 ').replace(/CLEAN\s*单变量/g,'单变量干净').replace(/ROI目标/g,'投产比目标').replace(/ROI实验/g,'投产比实验').replace(/ROI\s*(?=\d|→|:|：|$)/g,'投产比目标 ').replace(/净ROAS/g,'净投产比').replace(/ROAS/g,'广告投产比').replace(/CVR/g,'转化率').replace(/CTR/g,'点击率').replace(/\bR\s*(?=\d)/g,'投产比 ').replace(/AI经营结论/g,'智能经营结论').replace(/AI诊断/g,'智能诊断').replace(/AI识别/g,'智能系统识别').replace(/TEMU US/g,'TEMU 美区').replace(/\bUS\b/g,'美区').replace(/SPU/g,'款式编码').replace(/Manager/g,'管理员').replace(/Operator/g,'运营人员');
+}
+function translateDocument(doc){
+  if(!doc||!doc.body)return;doc.title='TEMU 美区 商品经营驾驶舱';
+  const walker=doc.createTreeWalker(doc.body,NodeFilter.SHOW_TEXT),nodes=[];let node;while(node=walker.nextNode()){const p=node.parentElement;if(!p||['SCRIPT','STYLE','NOSCRIPT','TEXTAREA'].includes(p.tagName))continue;nodes.push(node)}
+  nodes.forEach(n=>{const t=translateText(n.nodeValue);if(t!==n.nodeValue)n.nodeValue=t});
+  const title=doc.querySelector('.title');if(title&&/[A-Za-z]{3,}/.test(title.textContent||''))title.textContent='商品经营概览';
+  doc.querySelectorAll('input[placeholder]').forEach(el=>el.setAttribute('placeholder',translateText(el.getAttribute('placeholder'))));
+  const back=[...doc.querySelectorAll('button')].find(b=>(b.textContent||'').includes('返回P0主系统'));if(back)back.style.display='none';
+}
+function ymdAdd(s,n){const [y,m,d]=s.split('-').map(Number),x=new Date(Date.UTC(y,m-1,d+n));return `${x.getUTCFullYear()}-${String(x.getUTCMonth()+1).padStart(2,'0')}-${String(x.getUTCDate()).padStart(2,'0')}`}
+function pct(a,b){a=Number(a);b=Number(b);return Number.isFinite(a)&&Number.isFinite(b)&&b!==0?(a-b)/b:null}
+function normalized(row){if(!row)return null;return {...row,add_to_cart_count:Number(row.add_to_cart_count)||0,suborder_count:Number(row.suborder_count)||0,impressions:Number(row.impressions)||0,clicks:Number(row.clicks)||0,gross_sales:Number(row.gross_sales)||0,gross_ad_spend:Number(row.gross_ad_spend)||0,ctr:Number(row.ctr)||0,cvr:Number(row.cvr)||0,roas:Number(row.roas)||0,net_roas:Number(row.net_roas)||0}}
+async function rpcDayCompare(storeId,productId,date){
+  let token=localStorage.getItem('temu_token')||'';
+  let r=await fetch(SUPABASE_URL+'/rest/v1/rpc/temu_product_day_compare',{method:'POST',headers:{'content-type':'application/json','apikey':KEY,authorization:'Bearer '+token},body:JSON.stringify({p_store_id:storeId,p_product_id:productId,p_date:date}),cache:'no-store'});
+  if(r.status===401){await refreshSession();token=localStorage.getItem('temu_token')||'';r=await fetch(SUPABASE_URL+'/rest/v1/rpc/temu_product_day_compare',{method:'POST',headers:{'content-type':'application/json','apikey':KEY,authorization:'Bearer '+token},body:JSON.stringify({p_store_id:storeId,p_product_id:productId,p_date:date}),cache:'no-store'})}
+  const d=await r.json();if(!r.ok)throw new Error(d.message||d.error||'单日数据加载失败');return d;
+}
+async function baseDashboard(storeId,productId){
+  const token=localStorage.getItem('temu_token')||'';const u=new URL(API);u.searchParams.set('api','product-dashboard');u.searchParams.set('store_id',storeId);u.searchParams.set('product_id',productId);u.searchParams.set('days','7');
+  const r=await fetch(u,{headers:{apikey:KEY,authorization:'Bearer '+token},cache:'no-store'});const d=await r.json();if(!r.ok)throw new Error(d.error||'驾驶舱基础数据加载失败');return d;
+}
+function synthesizeSingleDay(base,cmp){
+  const c=normalized(cmp.current),p=normalized(cmp.previous);if(!c)throw new Error('所选日期没有该商品数据');if(!p)throw new Error('所选日期的前一天没有数据，无法进行昨日环比');
+  const carts=c.add_to_cart_count,orders=c.suborder_count,sales=c.gross_sales,spend=c.gross_ad_spend;
+  const summary={impressions:c.impressions,clicks:c.clicks,carts,orders,sales,spend,net_sales:Number(c.net_sales)||0,net_spend:Number(c.net_ad_spend)||0,ctr:c.ctr,cart_rate:c.clicks?carts/c.clicks:null,cvr:c.cvr,cart_to_order:carts?orders/carts:null,roas:c.roas,net_roas:c.net_roas};
+  const deltas={impressions:pct(c.impressions,p.impressions),clicks:pct(c.clicks,p.clicks),orders:pct(c.suborder_count,p.suborder_count),sales:pct(c.gross_sales,p.gross_sales),ctr:pct(c.ctr,p.ctr),cvr:pct(c.cvr,p.cvr),roas:pct(c.roas,p.roas)};
+  return {...base,daily:[p,c],summary,latest:c,previous_average:p,deltas,hourly:cmp.hourly||[],diagnostics:cmp.diagnostics||[],current_experiment:null};
+}
+function installTimeMode(frame){
+  const doc=frame.contentDocument;if(!doc||!doc.body)return;const controls=doc.querySelector('.controls');const days=doc.getElementById('days'),load=doc.getElementById('load');if(!controls||!days||!load||doc.getElementById('viewMode'))return;
+  const mode=doc.createElement('select');mode.id='viewMode';mode.innerHTML='<option value="range">区间查看</option><option value="day">单日环比昨日</option>';
+  const date=doc.createElement('input');date.id='singleDate';date.type='date';date.style.display='none';date.style.minWidth='160px';date.value='2026-09-14';
+  controls.insertBefore(mode,days);controls.insertBefore(date,load);
+  mode.onchange=()=>{const single=mode.value==='day';days.style.display=single?'none':'';date.style.display=single?'':'none';load.textContent=single?'查看单日环比':'加载驾驶舱';};
+  load.addEventListener('click',async ev=>{
+    if(mode.value!=='day')return;
+    ev.preventDefault();ev.stopImmediatePropagation();
+    const store=doc.getElementById('store')?.value,product=doc.getElementById('product')?.value?.trim(),selected=date.value,status=doc.getElementById('status');
+    if(!store||!product||!selected)return;
+    try{
+      if(status)status.textContent='正在加载单日环比…';
+      const [cmp,base]=await Promise.all([rpcDayCompare(store,product,selected),baseDashboard(store,product)]);
+      const synthetic=synthesizeSingleDay(base,cmp);
+      frame.contentWindow.render(synthetic);
+      translateDocument(doc);
+      const root=doc.getElementById('root');
+      if(root){
+        const banner=doc.createElement('div');banner.className='notice';banner.style.marginBottom='14px';banner.innerHTML=`<b>单日环比：</b>${selected} 对比 ${ymdAdd(selected,-1)}（较昨日） · 下方24小时结构仅统计 ${selected} 当天`;
+        root.insertBefore(banner,root.firstChild);
+        root.querySelectorAll('.delta').forEach(el=>{el.innerHTML=el.innerHTML.replace('最新日 vs 前期均值','较昨日（日环比）')});
+        const trendTitle=[...root.querySelectorAll('h2')].find(x=>(x.textContent||'').includes('近2天趋势'));if(trendTitle)trendTitle.textContent='所选日与昨日对比';
+        const dataCard=[...root.querySelectorAll('.decisionlite h3')].find(x=>(x.textContent||'').includes('数据状态'));if(dataCard){const box=dataCard.parentElement;box.innerHTML='<h3>对比口径</h3><div class="statusgood">单日环比昨日</div><div class="summaryline">所选日期：'+selected+'</div><div class="summaryline">对比日期：'+ymdAdd(selected,-1)+'</div>'}
+        const actionCard=[...root.querySelectorAll('.decisionlite h3')].find(x=>(x.textContent||'').includes('下一步动作'));if(actionCard){actionCard.parentElement.innerHTML='<h3>阅读方式</h3><div class="summaryline">本页用于判断当天相较昨日的变化；实验24小时/72小时/7天窗口仍按真实变更时间独立计算，不受本筛选影响。</div>'}
+      }
+      translateDocument(doc);if(status)status.textContent='已加载单日环比';
+    }catch(e){if(status)status.textContent='加载失败';alert(e.message||'加载失败')}
+  },true);
+}
+function installChineseUI(frame){
+  const apply=()=>{try{const doc=frame.contentDocument;if(!doc||!doc.body)return;translateDocument(doc);installTimeMode(frame);const ob=new MutationObserver(()=>translateDocument(doc));ob.observe(doc.body,{childList:true,subtree:true,characterData:true})}catch(e){console.warn('中文界面处理失败',e)}};
+  frame.addEventListener('load',apply,{once:false});setTimeout(apply,300);
+}
+function switchModule(module){
+  const frame=q('dashFrame');if(!frame)return;
+  q('tabBusiness').classList.toggle('active',module==='business');
+  q('tabTrend').classList.toggle('active',module==='trend');
+  if(module==='trend'){
+    frame.src='/trend.html?embedded=1&build=p0-8-5';
+  }else{
+    frame.src='/product-dashboard.html?build=p0-8-5-integrated-20260915';
+  }
+}
+function launch(){
+  q('gate').classList.add('hide');q('frameWrap').classList.remove('hide');
+  q('frameWrap').innerHTML=`<div class="shell"><div class="shellnav"><div class="navleft"><div class="brand">TEMU 美区 · 商品经营驾驶舱 <span class="muted">P0-8.5</span></div><div class="navtabs"><button id="tabBusiness" class="navtab active">商品经营</button><button id="tabTrend" class="navtab">商品趋势</button></div></div><button id="backMain" class="navback">返回P0主系统</button></div><div class="framebox"><iframe id="dashFrame" src="/product-dashboard.html?build=p0-8-5-integrated-20260915" allow="clipboard-read; clipboard-write"></iframe></div></div>`;
+  const frame=q('dashFrame');installChineseUI(frame);
+  q('tabBusiness').onclick=()=>switchModule('business');q('tabTrend').onclick=()=>switchModule('trend');q('backMain').onclick=()=>location.href='/';
+  scheduleRefresh();
+}
+q('loginForm').addEventListener('submit',async e=>{e.preventDefault();q('err').classList.add('hide');q('loginBtn').disabled=true;q('loginBtn').textContent='登录中…';try{await tokenRequest('password',{email:q('email').value,password:q('password').value});launch()}catch(err){q('err').textContent=err.message||'登录失败';q('err').classList.remove('hide')}finally{q('loginBtn').disabled=false;q('loginBtn').textContent='登录并进入驾驶舱'}});
+(async()=>{q('sub').textContent='正在验证登录状态…';const ok=await validateAccess();if(ok)launch();else showLogin()})();
+</script>
+</body>
+</html>
