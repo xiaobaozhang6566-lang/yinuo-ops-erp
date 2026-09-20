@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>基础配对 · P0</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}
+.top{height:62px;background:#fff;border-bottom:1px solid #e4e9f1;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:10}
+.brand{font-weight:850}.muted{color:#718096}.wrap{max-width:1440px;margin:auto;padding:22px}.toolbar{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:9px;padding:9px 13px;font-weight:750;cursor:pointer}.blue{background:#111827;color:#fff}.gray{background:#e9edf4;color:#172033}.green{background:#dcfce7;color:#166534}.red{background:#fee2e2;color:#991b1b}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.card,.panel{background:#fff;border:1px solid #e4e9f1;border-radius:14px;box-shadow:0 2px 10px rgba(25,40,65,.04)}.card{padding:15px}.num{font-size:26px;font-weight:850;margin-top:5px}
+.panel{margin-bottom:16px;overflow:hidden}.head{padding:15px 17px;border-bottom:1px solid #edf1f6;display:flex;align-items:center;justify-content:space-between;gap:12px}.body{padding:16px}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:980px}.table th,.table td{padding:10px;border-bottom:1px solid #edf1f6;text-align:left;vertical-align:middle}.table th{font-size:12px;color:#64748b;background:#f8fafc;position:sticky;top:0}.table td{font-size:14px}
+.input{width:100%;border:1px solid #d8dee8;border-radius:8px;padding:9px 10px;background:#fff}.select{min-width:150px}.product-name{max-width:430px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#eef2f7;font-weight:750}.ok{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}
+.filters{display:flex;gap:10px;flex-wrap:wrap}.filters .input{width:auto;min-width:180px}.msg{margin:12px 0;padding:10px 12px;border-radius:9px;background:#fff7ed;color:#9a3412}.empty{padding:24px;text-align:center;color:#718096}
+@media(max-width:800px){.cards{grid-template-columns:1fr 1fr}.wrap{padding:12px}.top{padding:0 12px}.card{min-width:0}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">亦诺跨境 · 基础配对 <span class="muted">P0 独立测试</span></div><div class="toolbar"><button class="btn gray" id="backBtn" onclick="location.href='/p0-home.html'">返回P0主系统</button><button class="btn blue" id="refreshBtn">刷新</button></div></header>
+<main class="wrap">
+<div class="cards">
+ <div class="card">负责人<div class="num" id="memberCount">—</div></div>
+ <div class="card">店铺<div class="num" id="storeCount">—</div></div>
+ <div class="card">未绑定负责人店铺<div class="num" id="unassignedCount">—</div></div>
+ <div class="card">未维护统一款号<div class="num" id="noStyleCount">—</div></div>
+</div>
+<div id="msg"></div>
+
+<section class="panel">
+ <div class="head"><div><b>负责人 ↔ 店铺</b><div class="muted" style="margin-top:4px;font-size:13px">一个店铺只绑定一个负责人；一个负责人可以负责多个店铺。</div></div></div>
+ <div class="table-wrap"><table class="table"><thead><tr><th>店铺</th><th>平台</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody id="storeRows"></tbody></table></div>
+</section>
+
+<section class="panel">
+ <div class="head"><div><b>店铺商品映射</b><div class="muted" style="margin-top:4px;font-size:13px">商品自动继承店铺负责人；这里只维护商品ID、SPU和统一款式编码/款号。</div></div><div class="filters"><select id="ownerFilter" class="input"><option value="">全部负责人</option></select><select id="storeFilter" class="input"><option value="">全部店铺</option></select><select id="completeFilter" class="input"><option value="">全部商品</option><option value="missing">仅看未完成配对</option></select><input id="searchBox" class="input" placeholder="搜索商品ID / SPU / 款号"></div></div>
+ <div class="table-wrap"><table class="table"><thead><tr><th>负责人</th><th>店铺</th><th>商品ID</th><th>SPU</th><th>统一款式编码 / 款号</th><th>商品名称</th><th>状态</th><th>操作</th></tr></thead><tbody id="productRows"></tbody></table></div>
+</section>
+</main>
+<script>
+const U='https://iscadepgzegrvcqzosso.supabase.co';
+const K='sb_publishable_9wdwV4dxsojsa89HV7fbnA_yh1MZTs2';
+let session=null,data={members:[],stores:[],products:[],counts:{}},refreshPromise=null;
+try{session=JSON.parse(localStorage.getItem('ynerp'))}catch{}
+const embedded=new URLSearchParams(location.search).get('embedded')==='1';
+if(embedded)backBtn.style.display='none';
+const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function token(){return session?.access_token||localStorage.getItem('temu_token')||''}
+function refreshToken(){return session?.refresh_token||localStorage.getItem('temu_refresh_token')||''}
+function persist(d){if(!d?.access_token)return;localStorage.setItem('temu_token',d.access_token);if(d.refresh_token)localStorage.setItem('temu_refresh_token',d.refresh_token);if(session){session={...session,...d,user:d.user||session.user};localStorage.setItem('ynerp',JSON.stringify(session))}}
+async function refreshSession(){if(refreshPromise)return refreshPromise;const rt=refreshToken();if(!rt)throw new Error('登录已过期');refreshPromise=(async()=>{const r=await fetch(U+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:rt})});const d=await r.json();if(!r.ok)throw new Error(d.error_description||d.error||'登录已过期');persist(d);return d.access_token})().finally(()=>refreshPromise=null);return refreshPromise}
+async function call(api,opt={},retried=false){let t=token();if(!t)throw new Error('请返回P0主系统重新登录');const r=await fetch(U+'/functions/v1/ops-master-data?api='+api,{...opt,headers:{apikey:K,'Content-Type':'application/json',Authorization:'Bearer '+t,...(opt.headers||{})},cache:'no-store'});const x=await r.text();let d={};try{d=JSON.parse(x)}catch{d={error:x}}if(r.status===401&&!retried){await refreshSession();return call(api,opt,true)}if(!r.ok)throw new Error(d.error||'请求失败');return d}
+function memberName(id){return data.members.find(x=>x.user_id===id)?.display_name||'未绑定'}
+function options(selected){return '<option value="">请选择负责人</option>'+data.members.map(m=>'<option value="'+e(m.user_id)+'" '+(m.user_id===selected?'selected':'')+'>'+e(m.display_name)+'</option>').join('')}
+function renderStores(){storeRows.innerHTML=data.stores.map(s=>'<tr><td><b>'+e(s.store_name)+'</b></td><td>'+e(s.platform||'—')+'</td><td><select class="input select" id="owner_'+s.id+'">'+options(s.primary_user_id)+'</select></td><td>'+(s.primary_user_id?'<span class="pill ok">已绑定</span>':'<span class="pill warn">未绑定</span>')+'</td><td><button class="btn blue" onclick="saveOwner(\''+s.id+'\')">保存</button> '+(s.primary_user_id?'<button class="btn gray" onclick="clearOwner(\''+s.id+'\')">清除</button>':'')+'</td></tr>').join('')}
+function renderProducts(){const of=ownerFilter.value,sf=storeFilter.value,cf=completeFilter.value,q=searchBox.value.trim().toLowerCase();let rows=data.products.filter(p=>(!of||p.primary_user_id===of)&&(!sf||p.store_id===sf)&&(!q||[p.product_id,p.spu,p.unified_style_code,p.product_name].some(v=>String(v||'').toLowerCase().includes(q)))&&(!(cf==='missing')||!String(p.unified_style_code||'').trim()));productRows.innerHTML=rows.length?rows.map(p=>'<tr><td><b>'+e(p.owner_name||'未绑定')+'</b></td><td>'+e(p.store_name)+'</td><td><b>'+e(p.product_id)+'</b></td><td><input class="input" id="spu_'+p.id+'" value="'+e(p.spu||'')+'" placeholder="SPU"></td><td><input class="input" id="style_'+p.id+'" value="'+e(p.unified_style_code||'')+'" placeholder="统一款号"></td><td><div class="product-name" title="'+e(p.product_name||'')+'">'+e(p.product_name||'—')+'</div></td><td>'+(p.primary_user_id&&p.spu&&p.unified_style_code?'<span class="pill ok">配对完整</span>':'<span class="pill warn">待完善</span>')+'</td><td><button class="btn blue" onclick="saveProduct(\''+p.id+'\')">保存</button></td></tr>').join(''):'<tr><td colspan="8" class="empty">没有符合条件的商品</td></tr>'}
+function fillFilters(){ownerFilter.innerHTML='<option value="">全部负责人</option>'+data.members.map(m=>'<option value="'+e(m.user_id)+'">'+e(m.display_name)+'</option>').join('');storeFilter.innerHTML='<option value="">全部店铺</option>'+data.stores.map(s=>'<option value="'+e(s.id)+'">'+e(s.store_name)+'</option>').join('')}
+function renderCounts(){memberCount.textContent=data.members.length;storeCount.textContent=data.counts.stores??data.stores.length;unassignedCount.textContent=data.counts.stores_unassigned??0;noStyleCount.textContent=data.counts.products_no_style??0}
+async function load(){refreshBtn.disabled=true;try{data=await call('list');renderCounts();fillFilters();renderStores();renderProducts();msg.innerHTML=''}catch(z){msg.innerHTML='<div class="msg">'+e(z.message)+'</div>'}finally{refreshBtn.disabled=false}}
+async function saveOwner(storeId){const v=document.getElementById('owner_'+storeId).value;if(!v){alert('请选择负责人');return}try{await call('save-store-owner',{method:'POST',body:JSON.stringify({store_id:storeId,primary_user_id:v})});await load()}catch(z){alert(z.message)}}
+async function clearOwner(storeId){if(!confirm('确认清除这个店铺的负责人绑定？'))return;try{await call('clear-store-owner',{method:'POST',body:JSON.stringify({store_id:storeId})});await load()}catch(z){alert(z.message)}}
+async function saveProduct(id){const spu=document.getElementById('spu_'+id).value.trim(),style=document.getElementById('style_'+id).value.trim();try{await call('save-product-map',{method:'POST',body:JSON.stringify({product_ref_id:id,spu,unified_style_code:style})});const p=data.products.find(x=>x.id===id);if(p){p.spu=spu;p.unified_style_code=style}renderProducts();msg.innerHTML='<div class="msg" style="background:#ecfdf5;color:#166534">商品配对已保存。</div>'}catch(z){alert(z.message)}}
+[ownerFilter,storeFilter,completeFilter].forEach(x=>x.onchange=renderProducts);searchBox.oninput=renderProducts;refreshBtn.onclick=load;load();
+</script>
+</body></html>
