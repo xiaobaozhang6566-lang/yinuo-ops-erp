@@ -18,6 +18,7 @@
         <button id="mainTab" class="tab active">P0主系统</button>
         <button id="dashTab" class="tab">商品经营驾驶舱</button>
         <button id="directorTab" class="tab">AI 跨境运营总监</button>
+        <button id="masterDataTab" class="tab">基础配对</button>
       </nav>
     </div>
     <div class="hint">数据上传 → 状态变更 → 实验 → 商品经营决策</div>
@@ -27,7 +28,7 @@
 <script>
 const q=id=>document.getElementById(id);
 function activateTab(id){
-  ['mainTab','dashTab','directorTab'].forEach(function(x){q(x).classList.toggle('active',x===id)});
+  ['mainTab','dashTab','directorTab','masterDataTab'].forEach(function(x){q(x).classList.toggle('active',x===id)});
 }
 function showMain(){
   activateTab('mainTab');
@@ -41,9 +42,14 @@ function showDirector(){
   activateTab('directorTab');
   q('mainFrame').src='/director-agent.html?embedded=1&build=p0-shell-20260919';
 }
+function showMasterData(){
+  activateTab('masterDataTab');
+  q('mainFrame').src='/master-data.html?embedded=1&build=p0-master-v1';
+}
 q('mainTab').onclick=showMain;
 q('dashTab').onclick=showDashboard;
 q('directorTab').onclick=showDirector;
+q('masterDataTab').onclick=showMasterData;
 </script>
 </body>
 </html>
