@@ -2,7 +2,7 @@
   var V14={range:'today',teamRange:'week',filters:{assignee:'',store:'',status:'',priority:''}};
   window.OPS14=V14;
   function syncVersion(){document.querySelectorAll('.top small').forEach(function(n){if(n.textContent!=='V1.4')n.textContent='V1.4'});document.querySelectorAll('.box .muted').forEach(function(n){var next=n.textContent.replace('V1.2','V1.4').replace('V1.3','V1.4');if(next!==n.textContent)n.textContent=next})}
-  var vo=new MutationObserver(syncVersion);vo.observe(document.documentElement,{childList:true,subtree:true});syncVersion();
+  // Avoid cross-version MutationObserver feedback loops; keep feature code intact.
   function localDate(d){return d.toLocaleDateString('sv-SE')}
   function weekBounds(){var now=new Date(),day=now.getDay()||7,start=new Date(now.getFullYear(),now.getMonth(),now.getDate());start.setDate(start.getDate()-day+1);var end=new Date(start);end.setDate(end.getDate()+6);return {start:localDate(start),end:localDate(end)}}
   function inRange(t,range){var d=t.task_date||'';if(range==='all')return true;if(range==='today')return d===localDate(new Date());var w=weekBounds();return d>=w.start&&d<=w.end}
