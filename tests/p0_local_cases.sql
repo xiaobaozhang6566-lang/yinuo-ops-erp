@@ -21,11 +21,13 @@ do $t$ begin
 exception when sqlstate '22023' then null;
 end $t$;
 set test.user_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+set role authenticated;
 do $t$ begin
  perform public.kb_review_memory_with_reason('33333333-3333-4333-8333-333333333333',false,'Non-manager should be denied');
  raise exception 'non-manager accepted';
 exception when sqlstate '42501' then null;
 end $t$;
+reset role;
 set test.user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 do $reject$ begin
  if public.kb_review_memory_with_reason('33333333-3333-4333-8333-333333333333',false,'Rejected in isolated integration test') <> 'REJECTED' then raise exception 'unexpected rejection result'; end if;
