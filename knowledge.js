@@ -3,18 +3,10 @@
   const KB={query:'',category:'',items:[],drafts:[],selected:null,error:'',busy:false,adminBusy:false};
   const labels={POLICY:'公司规则',SOP:'岗位 SOP',PRODUCT:'商品知识',LESSON:'经验案例',DECISION:'经营决策',TEAM:'团队知识'};
   const esc=x=>e(x);
-  const oldDraw=draw;
-  draw=function(){
-    oldDraw();
-    if(!S.member)return;
-    const nav=document.querySelector('.top .nav');
-    if(!nav)return;
-    const b=document.createElement('button');
-    b.textContent='AI 知识中心';b.dataset.kbNav='1';
-    if(S.page==='knowledge')b.className='on';
-    b.onclick=()=>{S.page='knowledge';draw()};
-    nav.appendChild(b);
+  const previousPage=page;
+  page=function(){
     if(S.page==='knowledge')renderShell();
+    else previousPage();
   };
   function valid(r){
     const now=Date.now();
