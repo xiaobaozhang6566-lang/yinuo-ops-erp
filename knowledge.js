@@ -93,11 +93,13 @@
       host.querySelectorAll('.kb-item').forEach((card,i)=>{
         const item=KB.drafts[i],form=document.createElement('div');
         form.className='kb-review-form';
-        form.innerHTML='<label class="kb-review-label">审核意见（至少 10 字）</label><textarea class="input" maxlength="2000" rows="3" placeholder="说明规则依据、核对结果和批准或退回原因"></textarea><div class="kb-review-actions"><button type="button" class="btn gray" data-intent="approve">预览批准确认</button><button type="button" class="btn gray" data-intent="reject">预览退回确认</button></div><div class="kb-review-feedback" aria-live="polite"></div>';
+        form.innerHTML='<label class="kb-review-label">审核意见（至少 10 字）</label><div class="kb-char-count">已输入 0 字，还需 10 字</div><textarea class="input" maxlength="2000" rows="3" placeholder="说明规则依据、核对结果和批准或退回原因"></textarea><div class="kb-review-actions"><button type="button" class="btn gray" data-intent="approve">预览批准确认</button><button type="button" class="btn gray" data-intent="reject">预览退回确认</button></div><div class="kb-review-feedback" aria-live="polite"></div>';
         card.appendChild(form);
+        const field=form.querySelector('textarea'),counter=form.querySelector('.kb-char-count');
+        field.addEventListener('input',()=>{const n=field.value.trim().length;counter.textContent=n>=10?'已输入 '+n+' 字，可进行模拟预览':'已输入 '+n+' 字，还需 '+(10-n)+' 字';form.querySelector('.kb-review-feedback').textContent='';});
         form.querySelectorAll('[data-intent]').forEach(btn=>btn.onclick=()=>{
           const reason=form.querySelector('textarea').value.trim(),feedback=form.querySelector('.kb-review-feedback');
-          if(reason.length<10){feedback.textContent='审核意见至少 10 个字符。';return}
+          if(reason.length<10){feedback.textContent='无法预览：当前只有 '+reason.length+' 字，请再输入至少 '+(10-reason.length)+' 字。';feedback.classList.add('kb-review-error');return}feedback.classList.remove('kb-review-error');
           feedback.innerHTML='<strong>操作预览：'+(btn.dataset.intent==='approve'?'批准':'退回')+'</strong><p>知识：'+esc(item.title)+' · V'+esc(item.version)+'</p><p>审核意见：'+esc(reason)+'</p><p class="muted">当前为模拟确认，未提交数据库，知识状态不会改变。</p>';
         });
       });
