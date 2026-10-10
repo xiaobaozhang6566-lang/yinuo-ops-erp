@@ -8,6 +8,9 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f7fb;color:#172033}.shell{height:100vh;display:flex;flex-direction:column}.nav{height:60px;flex:0 0 60px;background:#fff;border-bottom:1px solid #e4e9f1;box-shadow:0 2px 10px rgba(25,40,65,.04);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:16px}.left{display:flex;align-items:center;gap:16px}.brand{font-size:17px;font-weight:800;white-space:nowrap}.version{font-size:12px;color:#718096;font-weight:600}.tabs{display:flex;gap:8px}.tab{font:inherit;border:0;border-radius:10px;padding:10px 15px;font-weight:750;cursor:pointer;background:#e9edf4;color:#172033}.tab.active{background:#111827;color:#fff}.hint{font-size:13px;color:#718096}.frame{flex:1;min-height:0}.frame iframe{width:100%;height:100%;border:0;display:block;background:#f4f7fb}@media(max-width:760px){.nav{height:auto;min-height:60px;padding:8px 10px;align-items:flex-start}.left{flex-direction:column;align-items:flex-start;gap:6px}.brand{font-size:14px}.hint{display:none}.tab{padding:8px 10px;font-size:13px}}
 </style>
+<style>
+.shell{height:100dvh}.nav{height:auto;min-height:60px;flex:0 0 auto;padding:12px 24px;box-shadow:none}.left{width:100%;display:grid;grid-template-columns:1fr;gap:10px}.brand{font-size:15px}.version{font-size:11px;margin-left:8px;padding:3px 6px;background:#f0f3f8;border-radius:4px}.tabs{gap:6px;overflow-x:auto}.tab{font-size:13px;border-radius:6px;padding:8px 12px;background:transparent;color:#586579;white-space:nowrap}.tab.active{background:#eaf0ff;color:#194cb9}.tab:hover{background:#f0f3f8}.tab:focus-visible{outline:3px solid #245bd6;outline-offset:2px}.hint{display:none}@media(min-width:1200px){.left{grid-template-columns:auto 1fr;align-items:center;gap:28px}.tabs{justify-content:flex-end}}@media(max-width:768px){.nav{padding:10px 16px}.brand{font-size:13px}.tab{font-size:12px;padding:7px 10px}}
+</style>
 </head>
 <body>
 <div class="shell">
@@ -23,16 +26,16 @@
     </div>
     <div class="hint">数据上传 → 状态变更 → 实验 → 商品经营决策</div>
   </header>
-  <div class="frame"><iframe id="mainFrame" src="/task-erp.html?embedded=1&build=p0-task-v15"></iframe></div>
+  <div class="frame"><iframe id="mainFrame" title="当前运营模块" src="/task-erp.html?embedded=1&build=p0-task-v16"></iframe></div>
 </div>
 <script>
 const q=id=>document.getElementById(id);
 function activateTab(id){
-  ['mainTab','dashTab','directorTab','masterDataTab'].forEach(function(x){q(x).classList.toggle('active',x===id)});
+  ['mainTab','dashTab','directorTab','masterDataTab'].forEach(function(x){q(x).classList.toggle('active',x===id);q(x).setAttribute('aria-pressed',String(x===id))});
 }
 function showMain(){
   activateTab('mainTab');
-  q('mainFrame').src='/task-erp.html?embedded=1&build=p0-task-v15';
+  q('mainFrame').src='/task-erp.html?embedded=1&build=p0-task-v16';
 }
 function showDashboard(){
   activateTab('dashTab');
