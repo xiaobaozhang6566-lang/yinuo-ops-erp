@@ -22,7 +22,7 @@
   }
   function renderShell(){
     const host=document.getElementById('c');if(!host)return;
-    host.innerHTML='<div class="kb-header"><div><div class="kb-eyebrow">YINUO AI OS · V1</div><h2>企业知识中心</h2><p class="muted">仅展示当前账号有权限阅读的已批准、有效知识。</p></div><span class="pill">只读试点</span></div>'+
+    host.innerHTML='<div class="kb-header"><div><div class="kb-eyebrow">YINUO AI OS · V1</div><h2>企业知识中心</h2><p class="muted">仅展示当前账号有权限阅读的已批准、有效知识。</p></div><span class="pill">管理员草稿审核试点</span></div>'+
     (S.member.role==='manager'?'<div class="panel"><div class="body"><h3>知识管理 · 管理员</h3><p class="muted">新增知识默认保存为草稿，不会自动生效。</p><button class="btn blue" id="kb-new">录入知识草稿</button> <button class="btn gray" id="kb-review">查看待审核草稿</button><div id="kb-admin" aria-live="polite"></div></div></div>':'')+'<div class="panel"><div class="body"><div class="kb-search"><input id="kb-query" class="input" placeholder="输入标题、SOP 或商品关键词" value="'+esc(KB.query)+'"><select id="kb-category" class="input"><option value="">全部分类</option>'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'" '+(KB.category===k?'selected':'')+'>'+v+'</option>').join('')+'</select><button id="kb-search-btn" class="btn blue">搜索</button></div><div class="kb-hint">如看不到知识，可能是尚未批准，或当前账号未获得授权。</div><div id="kb-results" aria-live="polite"></div></div></div>';
     document.getElementById('kb-query').oninput=ev=>KB.query=ev.target.value;
     document.getElementById('kb-query').onkeydown=ev=>{if(ev.key==='Enter')refresh()};
