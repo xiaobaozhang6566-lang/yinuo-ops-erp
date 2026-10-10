@@ -22,3 +22,12 @@ do $check$ begin
  raise exception 'manager should see nine knowledge fixture rows'; end if;
 end $check$;
 reset role;
+-- Explicit anonymous DB role must not have table SELECT privilege.
+set role anon;
+do $anon$ begin
+  perform 1 from public.ai_p0_memories limit 1;
+  raise exception 'anonymous SELECT unexpectedly permitted';
+exception
+  when insufficient_privilege then null;
+end $anon$;
+reset role;
