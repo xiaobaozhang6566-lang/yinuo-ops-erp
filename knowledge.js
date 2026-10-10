@@ -90,14 +90,43 @@
           slot.innerHTML='<h4>事件（'+ev.length+'）</h4>'+(ev.map(x=>'<div class="kb-audit-event"><strong>'+esc(x.event_type||'任务事件')+'</strong> · '+esc(x.created_at||'')+'<pre class="kb-content"></pre></div>').join('')||'<p class="muted">暂无事件。</p>')+
             '<h4>提交（'+sub.length+'）</h4>'+(sub.map(x=>'<div class="kb-audit-event"><strong>第 '+esc(x.attempt_no)+' 次提交</strong> · '+esc(x.review_status||'待审核')+' · '+esc(x.submitted_at||'')+'<p>'+esc(x.result||'')+'</p><p>'+esc(x.note||'')+'</p></div>').join('')||'<p class="muted">暂无提交。</p>');
           slot.querySelectorAll('.kb-audit-event pre').forEach((el,i)=>{el.textContent=JSON.stringify(ev[i].detail||{},null,2)});
+          if(S.member?.role==='manager'){
+            const draftButton=document.createElement('button');
+            draftButton.type='button';draftButton.className='btn gray';
+            draftButton.textContent='整理为经验案例草稿';
+            slot.appendChild(draftButton);
+            draftButton.onclick=()=>{
+              const last=sub[0]||{};
+              const body=[
+                '关联任务：#'+(rows.find(t=>t.id===btn.dataset.taskTraceId)?.task_no||''),
+                '任务标题：'+(rows.find(t=>t.id===btn.dataset.taskTraceId)?.title||''),
+                '问题描述：[请填写真实问题与影响]',
+                '执行结果：'+String(last.result||'待补充'),
+                '处理过程：'+ev.slice(0,12).map(x=>x.event_type+' '+(x.created_at||'')).join('；'),
+                '复盘原因：[请填写已核验的根因]',
+                '防复发措施：[请填写可执行的措施]',
+                '证据链接：[请补充]',
+                '说明：此文本为任务记录辅助整理，须核对后保存为草稿，未经审批不得生效。'
+              ].join('\\n');
+              showCreate({category:'LESSON',scope:'COMPANY',key:'TASK-CASE-'+String(rows.find(t=>t.id===btn.dataset.taskTraceId)?.task_no||'').trim(),title:'任务案例：'+String(rows.find(t=>t.id===btn.dataset.taskTraceId)?.title||''),body,source:'TASK:'+btn.dataset.taskTraceId});
+            };
+          }
         }catch(err){slot.textContent='留痕读取失败：'+(err?.message||'当前账号无权访问');}
         finally{btn.disabled=false;}
       });
     }catch(err){host.textContent='任务列表读取失败：'+(err?.message||'权限不足')}
   }
-  function showCreate(){
+  function showCreate(seed){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager')return;
     host.innerHTML='<form id="kb-create-form" class="kb-form"><div class="form-grid"><div class="field"><label>知识编号（同编号生成新版本）</label><input class="input" name="key" required minlength="3" maxlength="160" placeholder="例如 VISUAL-HERO-SOP"></div><div class="field"><label>分类</label><select class="input" name="category">'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div><div class="field"><label>适用范围</label><select class="input" name="scope"><option value="COMPANY">公司</option><option value="TEAM">团队</option><option value="STORE">店铺</option><option value="PRODUCT">商品</option></select></div><div class="field"><label>标题</label><input class="input" name="title" required minlength="2" maxlength="250"></div><div class="field wide"><label>知识正文</label><textarea class="input" name="body" required maxlength="20000" rows="8"></textarea></div><div class="field wide"><label>来源说明（可选）</label><input class="input" name="source" maxlength="300" placeholder="原始文件名、任务编号等"></div></div><div id="kb-form-msg" role="alert"></div><button class="btn blue" type="submit">保存为待审核草稿</button></form>';
+    if(seed){
+      const form=host.querySelector('form');
+      for(const [key,value] of Object.entries(seed)){
+        const field=form.elements.namedItem(key);
+        if(field)field.value=String(value??'');
+      }
+      host.scrollIntoView({behavior:'smooth',block:'start'});
+    }
     host.querySelector('form').onsubmit=async ev=>{
       ev.preventDefault();if(KB.adminBusy)return;
       const form=ev.currentTarget,btn=form.querySelector('button[type="submit"]'),msg=document.getElementById('kb-form-msg');
