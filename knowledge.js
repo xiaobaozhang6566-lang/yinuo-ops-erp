@@ -1,5 +1,6 @@
 /* AI Second Brain V1: read-only knowledge center, fail-closed on permissions. */
 (function(){
+  const REVIEW_RELEASE_ENABLED=false; // Explicit release gate; never auto-enable from RPC availability.
   const KB={query:'',category:'',items:[],drafts:[],selected:null,error:'',busy:false,adminBusy:false};
   const labels={POLICY:'公司规则',SOP:'岗位 SOP',PRODUCT:'商品知识',LESSON:'经验案例',DECISION:'经营决策',TEAM:'团队知识'};
   const esc=x=>e(x);
@@ -108,15 +109,20 @@
   // This implementation is intentionally unreachable until a separately verified release.
   // Keep it detached from user controls while the production RPC is absent.
   async function submitReviewedKnowledgeAfterRelease(item,approve,reason){
+    if(!REVIEW_RELEASE_ENABLED)throw new Error('正式审批尚未通过上线验收');
+    if(KB.adminBusy)throw new Error('已有审核操作正在执行');
     if(S.member?.role!=='manager')throw new Error('仅管理员可审核');
     if(!item||item.status!=='DRAFT')throw new Error('知识草稿状态已变更');
     if(typeof reason!=='string'||reason.trim().length<10||reason.length>2000)throw new Error('审核意见需填写 10-2000 字');
+    KB.adminBusy=true;
+    try{
     const result=await api('/rest/v1/rpc/kb_review_memory_with_reason',{
       method:'POST',body:JSON.stringify({
         p_memory_id:item.id,p_approve:Boolean(approve),p_reason:reason.trim()
       })
     });
     return result;
+    }finally{KB.adminBusy=false}
   }
   async function showDrafts(){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager'||KB.adminBusy)return;
