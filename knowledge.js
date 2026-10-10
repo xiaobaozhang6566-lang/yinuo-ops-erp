@@ -49,7 +49,7 @@
     const host=document.getElementById('modalRoot');if(!host)return;
     const display=JSON.stringify(x.content||{},null,2);
     host.innerHTML='<div class="modal-backdrop" id="kb-modal"><div class="modal"><div class="modal-head"><h2>'+esc(x.title)+'</h2><button class="modal-close" id="kb-close" aria-label="关闭">×</button></div><div class="modal-body"><div class="kb-meta">分类：'+esc(labels[x.category]||x.category)+' · 版本 V'+esc(x.version)+' · 已批准</div><pre class="kb-content"></pre><p class="muted">来源：'+esc(x.source_type||'未标注')+' · 来源编号：'+esc(x.source_ref||'无')+'</p></div></div></div>';
-    host.querySelector('.kb-content').textContent=display;
+    host.querySelector('.kb-content').textContent=detailText(x.content);
     host.querySelector('#kb-close').onclick=()=>host.innerHTML='';
     host.querySelector('#kb-modal').onclick=ev=>{if(ev.target.id==='kb-modal')host.innerHTML=''};
   }
@@ -81,6 +81,20 @@
       finally{KB.adminBusy=false;btn.disabled=false}
     };
   }
+  function detailText(data){
+    if(!data||typeof data!=='object')return String(data||'暂无内容');
+    const names={summary:'核心规则',body:'知识正文',description:'说明',imported_date:'导入日期',review_required:'需要审核'};
+    return Object.entries(data).map(([k,v])=>(names[k]||k)+'：'+(typeof v==='boolean'?(v?'是':'否'):typeof v==='object'?JSON.stringify(v):String(v))).join('\n\n');
+  }
+  async function showAuditHistory(id,card){
+    const host=card.querySelector('.kb-audit-history');if(!host)return;
+    host.textContent='正在读取审核历史…';
+    try{
+      const records=await api('/rest/v1/ai_p0_audit_log?select=id,actor_user_id,actor_type,event_type,details,created_at&memory_id=eq.'+encodeURIComponent(id)+'&order=created_at.desc&limit=50');
+      if(!Array.isArray(records)||!records.length){host.textContent='暂无审核历史记录。';return}
+      host.innerHTML='<h4>审核历史（'+records.length+'）</h4>'+records.map(x=>'<div class="kb-audit-event"><strong>'+esc(({MEMORY_APPROVED:'批准',MEMORY_REJECTED:'拒绝'}[x.event_type]||x.event_type))+'</strong> · '+esc(x.created_at?new Date(x.created_at).toLocaleString('zh-CN'):'时间未知')+'<p>审核人编号：'+esc(x.actor_user_id||'未记录')+'</p><p>审核意见：'+esc(x.details?.review_reason||'旧记录未填写意见')+'</p></div>').join('');
+    }catch(err){host.textContent='审核历史暂不可读取（可能缺少数据库只读授权）：'+(err?.message||'权限限制')}
+  }
   async function showDrafts(){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager'||KB.adminBusy)return;
     KB.adminBusy=true;host.textContent='正在加载待审核草稿…';
@@ -89,11 +103,16 @@
       KB.drafts=Array.isArray(rows)?rows:[];
       host.innerHTML='<h4>待审核草稿（'+KB.drafts.length+'）</h4><p class="muted">批准会替换同编号当前已批准版本，请先核对内容和适用范围。</p>'+
         (KB.drafts.length?KB.drafts.map(x=>'<div class="kb-item"><h3>'+esc(x.title)+'</h3><div class="kb-meta">'+esc(labels[x.category]||x.category)+' · '+esc(x.scope)+' · '+esc(x.memory_key)+' · V'+esc(x.version)+'</div><pre class="kb-content"></pre><button class="btn gray" disabled title="审核接口升级后开放">审核通过（待开放）</button> <button class="btn gray" disabled title="审核接口升级后开放">退回草稿（待开放）</button></div>').join(''):'<p class="muted">当前没有待审核草稿。</p>');
-      host.querySelectorAll('.kb-item').forEach((el,i)=>{const v=KB.drafts[i].content||{};el.querySelector('pre').textContent=Object.entries(v).map(([k,val])=>({summary:'核心规则',body:'正文',imported_date:'导入日期',review_required:'需要审核'}[k]||k)+'：'+(typeof val==='object'?JSON.stringify(val):String(val))).join('\n\n')});
+      host.querySelectorAll('.kb-item').forEach((el,i)=>{const v=KB.drafts[i].content||{};el.querySelector('pre').textContent=Object.entries(v).map(([k,val])=>({summary:'核心规则',body:'正文',imported_date:'导入日期',review_required:'需要审核'}[k]||k)+'：'+(typeof val==='boolean'?(val?'是':'否'):typeof val==='object'?JSON.stringify(val):String(val))).join('\n\n')});
       host.querySelectorAll('.kb-item').forEach((card,i)=>{
         const item=KB.drafts[i],form=document.createElement('div');
         form.className='kb-review-form';
         form.innerHTML='<label class="kb-review-label">审核意见（至少 10 字）</label><div class="kb-char-count">已输入 0 字，还需 10 字</div><textarea class="input" maxlength="2000" rows="3" placeholder="说明规则依据、核对结果和批准或退回原因"></textarea><div class="kb-review-actions"><button type="button" class="btn gray" data-intent="approve">预览批准确认</button><button type="button" class="btn gray" data-intent="reject">预览退回确认</button></div><div class="kb-review-feedback" aria-live="polite"></div>';
+        const details=document.createElement('div');
+        details.className='kb-detail-panel';
+        details.innerHTML='<h4>知识详情</h4><p>适用范围：'+esc(item.scope)+' · 分类：'+esc(labels[item.category]||item.category)+'</p><p>知识编号：'+esc(item.memory_key)+' · 版本：V'+esc(item.version)+'</p><button type="button" class="btn gray kb-audit-toggle">查看审核历史</button><div class="kb-audit-history" aria-live="polite"></div>';
+        card.appendChild(details);
+        details.querySelector('.kb-audit-toggle').onclick=()=>showAuditHistory(item.id,details);
         card.appendChild(form);
         const field=form.querySelector('textarea'),counter=form.querySelector('.kb-char-count');
         field.addEventListener('input',()=>{const n=field.value.trim().length;counter.textContent=n>=10?'已输入 '+n+' 字，可进行模拟预览':'已输入 '+n+' 字，还需 '+(10-n)+' 字';form.querySelector('.kb-review-feedback').textContent='';});
