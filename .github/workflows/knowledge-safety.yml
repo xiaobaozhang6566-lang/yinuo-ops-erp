@@ -15,7 +15,9 @@ jobs:
         with:
           node-version: '22'
       - name: Run knowledge contract tests
-        run: node tests/knowledge-contract.test.cjs
+        run: |
+          node tests/knowledge-contract.test.cjs
+          node tests/p0-review-contract.test.cjs
       - name: Check JavaScript syntax
         run: |
           node --check app.js
