@@ -89,7 +89,7 @@
       KB.drafts=Array.isArray(rows)?rows:[];
       host.innerHTML='<h4>待审核草稿（'+KB.drafts.length+'）</h4><p class="muted">批准会替换同编号当前已批准版本，请先核对内容和适用范围。</p>'+
         (KB.drafts.length?KB.drafts.map(x=>'<div class="kb-item"><h3>'+esc(x.title)+'</h3><div class="kb-meta">'+esc(labels[x.category]||x.category)+' · '+esc(x.scope)+' · '+esc(x.memory_key)+' · V'+esc(x.version)+'</div><pre class="kb-content"></pre><button class="btn blue" data-review-id="'+esc(x.id)+'" data-approve="yes">审核通过</button> <button class="btn gray" data-review-id="'+esc(x.id)+'" data-approve="no">退回草稿</button></div>').join(''):'<p class="muted">当前没有待审核草稿。</p>');
-      host.querySelectorAll('.kb-item').forEach((el,i)=>{el.querySelector('pre').textContent=JSON.stringify(KB.drafts[i].content,null,2)});
+      host.querySelectorAll('.kb-item').forEach((el,i)=>{const v=KB.drafts[i].content||{};el.querySelector('pre').textContent=Object.entries(v).map(([k,val])=>({summary:'核心规则',body:'正文',imported_date:'导入日期',review_required:'需要审核'}[k]||k)+'：'+(typeof val==='object'?JSON.stringify(val):String(val))).join('\n\n')});
       host.querySelectorAll('[data-review-id]').forEach(b=>b.onclick=()=>reviewDraft(b.dataset.reviewId,b.dataset.approve==='yes'));
     }catch(err){host.textContent='读取失败：'+(err?.message||'请检查管理员权限')}
     finally{KB.adminBusy=false}
