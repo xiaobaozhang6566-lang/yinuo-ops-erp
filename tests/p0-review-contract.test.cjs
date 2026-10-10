@@ -21,7 +21,7 @@ const must = [
 ];
 must.forEach(re=>assert.match(sql,re));
 assert.doesNotMatch(page,/\/rpc\/ai_p0_review_memory/);
-assert.doesNotMatch(page,/\/rpc\/kb_review_memory_with_reason/);
+assert.match(page,/async function submitReviewedKnowledgeAfterRelease/);
 assert.match(page,/审核通过（待开放）/);
 console.log('P0: review migration and disabled-submit contract checks passed (static only).');
 
