@@ -3,7 +3,7 @@ set role authenticated;
 set test.user_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 do $check$ declare ids uuid[]; begin
  select array_agg(id order by id) into ids from public.ai_p0_memories;
- if ids is distinct from array['11111111-1111-4111-8111-111111111111'::uuid] then
+ if ids is distinct from array['22222222-2222-4222-8222-222222222222'::uuid] then
  raise exception 'active employee scope leak: %',ids; end if;
 end $check$;
 set test.user_id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
