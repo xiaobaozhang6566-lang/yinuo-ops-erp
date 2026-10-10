@@ -108,6 +108,10 @@
         const item=KB.drafts[i],form=document.createElement('div');
         form.className='kb-review-form';
         form.innerHTML='<label class="kb-review-label">审核意见（至少 10 字）</label><div class="kb-char-count">已输入 0 字，还需 10 字</div><textarea class="input" maxlength="2000" rows="3" placeholder="说明规则依据、核对结果和批准或退回原因"></textarea><div class="kb-review-actions"><button type="button" class="btn gray" data-intent="approve">预览批准确认</button><button type="button" class="btn gray" data-intent="reject">预览退回确认</button></div><div class="kb-review-feedback" aria-live="polite"></div>';
+        const reviewNote=document.createElement('p');
+        reviewNote.className='kb-hint';
+        reviewNote.textContent='正式审批尚未启用；以下操作仅预览，不会写入数据库。';
+        card.appendChild(reviewNote);
         const details=document.createElement('div');
         details.className='kb-detail-panel';
         details.innerHTML='<h4>知识详情</h4><p>适用范围：'+esc(item.scope)+' · 分类：'+esc(labels[item.category]||item.category)+'</p><p>知识编号：'+esc(item.memory_key)+' · 版本：V'+esc(item.version)+'</p><button type="button" class="btn gray kb-audit-toggle">查看审核历史</button><div class="kb-audit-history" aria-live="polite"></div>';
