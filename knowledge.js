@@ -90,6 +90,17 @@
       host.innerHTML='<h4>待审核草稿（'+KB.drafts.length+'）</h4><p class="muted">批准会替换同编号当前已批准版本，请先核对内容和适用范围。</p>'+
         (KB.drafts.length?KB.drafts.map(x=>'<div class="kb-item"><h3>'+esc(x.title)+'</h3><div class="kb-meta">'+esc(labels[x.category]||x.category)+' · '+esc(x.scope)+' · '+esc(x.memory_key)+' · V'+esc(x.version)+'</div><pre class="kb-content"></pre><button class="btn gray" disabled title="审核接口升级后开放">审核通过（待开放）</button> <button class="btn gray" disabled title="审核接口升级后开放">退回草稿（待开放）</button></div>').join(''):'<p class="muted">当前没有待审核草稿。</p>');
       host.querySelectorAll('.kb-item').forEach((el,i)=>{const v=KB.drafts[i].content||{};el.querySelector('pre').textContent=Object.entries(v).map(([k,val])=>({summary:'核心规则',body:'正文',imported_date:'导入日期',review_required:'需要审核'}[k]||k)+'：'+(typeof val==='object'?JSON.stringify(val):String(val))).join('\n\n')});
+      host.querySelectorAll('.kb-item').forEach((card,i)=>{
+        const item=KB.drafts[i],form=document.createElement('div');
+        form.className='kb-review-form';
+        form.innerHTML='<label class="kb-review-label">审核意见（至少 10 字）</label><textarea class="input" maxlength="2000" rows="3" placeholder="说明规则依据、核对结果和批准或退回原因"></textarea><div class="kb-review-actions"><button type="button" class="btn gray" data-intent="approve">预览批准确认</button><button type="button" class="btn gray" data-intent="reject">预览退回确认</button></div><div class="kb-review-feedback" aria-live="polite"></div>';
+        card.appendChild(form);
+        form.querySelectorAll('[data-intent]').forEach(btn=>btn.onclick=()=>{
+          const reason=form.querySelector('textarea').value.trim(),feedback=form.querySelector('.kb-review-feedback');
+          if(reason.length<10){feedback.textContent='审核意见至少 10 个字符。';return}
+          feedback.innerHTML='<strong>操作预览：'+(btn.dataset.intent==='approve'?'批准':'退回')+'</strong><p>知识：'+esc(item.title)+' · V'+esc(item.version)+'</p><p>审核意见：'+esc(reason)+'</p><p class="muted">当前为模拟确认，未提交数据库，知识状态不会改变。</p>';
+        });
+      });
       // Approval disabled until reason-bearing RPC has passed integration and permission tests.
     }catch(err){host.textContent='读取失败：'+(err?.message||'请检查管理员权限')}
     finally{KB.adminBusy=false}
