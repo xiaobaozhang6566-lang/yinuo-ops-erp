@@ -1,6 +1,6 @@
 /* AI Second Brain V1: read-only knowledge center, fail-closed on permissions. */
 (function(){
-  const KB={query:'',category:'',items:[],selected:null,error:'',busy:false};
+  const KB={query:'',category:'',items:[],drafts:[],selected:null,error:'',busy:false,adminBusy:false};
   const labels={POLICY:'公司规则',SOP:'岗位 SOP',PRODUCT:'商品知识',LESSON:'经验案例',DECISION:'经营决策',TEAM:'团队知识'};
   const esc=x=>e(x);
   const oldDraw=draw;
@@ -23,11 +23,15 @@
   function renderShell(){
     const host=document.getElementById('c');if(!host)return;
     host.innerHTML='<div class="kb-header"><div><div class="kb-eyebrow">YINUO AI OS · V1</div><h2>企业知识中心</h2><p class="muted">仅展示当前账号有权限阅读的已批准、有效知识。</p></div><span class="pill">只读试点</span></div>'+
-    '<div class="panel"><div class="body"><div class="kb-search"><input id="kb-query" class="input" placeholder="输入标题、SOP 或商品关键词" value="'+esc(KB.query)+'"><select id="kb-category" class="input"><option value="">全部分类</option>'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'" '+(KB.category===k?'selected':'')+'>'+v+'</option>').join('')+'</select><button id="kb-search-btn" class="btn blue">搜索</button></div><div class="kb-hint">如看不到知识，可能是尚未批准，或当前账号未获得授权。</div><div id="kb-results" aria-live="polite"></div></div></div>';
+    (S.member.role==='manager'?'<div class="panel"><div class="body"><h3>知识管理 · 管理员</h3><p class="muted">新增知识默认保存为草稿，不会自动生效。</p><button class="btn blue" id="kb-new">录入知识草稿</button> <button class="btn gray" id="kb-review">查看待审核草稿</button><div id="kb-admin" aria-live="polite"></div></div></div>':'')+'<div class="panel"><div class="body"><div class="kb-search"><input id="kb-query" class="input" placeholder="输入标题、SOP 或商品关键词" value="'+esc(KB.query)+'"><select id="kb-category" class="input"><option value="">全部分类</option>'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'" '+(KB.category===k?'selected':'')+'>'+v+'</option>').join('')+'</select><button id="kb-search-btn" class="btn blue">搜索</button></div><div class="kb-hint">如看不到知识，可能是尚未批准，或当前账号未获得授权。</div><div id="kb-results" aria-live="polite"></div></div></div>';
     document.getElementById('kb-query').oninput=ev=>KB.query=ev.target.value;
     document.getElementById('kb-query').onkeydown=ev=>{if(ev.key==='Enter')refresh()};
     document.getElementById('kb-category').onchange=ev=>{KB.category=ev.target.value;refresh()};
     document.getElementById('kb-search-btn').onclick=refresh;
+    if(S.member.role==='manager'){
+      document.getElementById('kb-new').onclick=showCreate;
+      document.getElementById('kb-review').onclick=showDrafts;
+    }
     paint();if(!KB.busy)refresh();
   }
   function paint(){
@@ -68,5 +72,47 @@
       KB.items=[];KB.error='当前账号暂不能读取正式知识：'+(err?.message||'访问受限')+'。请联系管理员配置知识检索权限。';
     }finally{KB.busy=false;paint()}
   }
-  /* No write endpoints; knowledge approval/write actions require separate audited server APIs. */
+
+  function showCreate(){
+    const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager')return;
+    host.innerHTML='<form id="kb-create-form" class="kb-form"><div class="form-grid"><div class="field"><label>知识编号（同编号生成新版本）</label><input class="input" name="key" required minlength="3" maxlength="160" placeholder="例如 VISUAL-HERO-SOP"></div><div class="field"><label>分类</label><select class="input" name="category">'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div><div class="field"><label>适用范围</label><select class="input" name="scope"><option value="COMPANY">公司</option><option value="TEAM">团队</option><option value="STORE">店铺</option><option value="PRODUCT">商品</option></select></div><div class="field"><label>标题</label><input class="input" name="title" required minlength="2" maxlength="250"></div><div class="field wide"><label>知识正文</label><textarea class="input" name="body" required maxlength="20000" rows="8"></textarea></div><div class="field wide"><label>来源说明（可选）</label><input class="input" name="source" maxlength="300" placeholder="原始文件名、任务编号等"></div></div><div id="kb-form-msg" role="alert"></div><button class="btn blue" type="submit">保存为待审核草稿</button></form>';
+    host.querySelector('form').onsubmit=async ev=>{
+      ev.preventDefault();if(KB.adminBusy)return;
+      const form=ev.currentTarget,btn=form.querySelector('button[type="submit"]'),msg=document.getElementById('kb-form-msg');
+      const fd=new FormData(form),body=String(fd.get('body')||'').trim(),title=String(fd.get('title')||'').trim(),key=String(fd.get('key')||'').trim();
+      if(!body||title.length<2||key.length<3){msg.textContent='请完整填写知识编号、标题和内容。';return}
+      KB.adminBusy=true;btn.disabled=true;msg.textContent='正在保存草稿…';
+      try{
+        await api('/rest/v1/rpc/ai_p0_save_memory',{method:'POST',body:JSON.stringify({p_scope:fd.get('scope'),p_key:key,p_category:fd.get('category'),p_title:title,p_content:{body},p_source_type:'MANUAL',p_source_ref:String(fd.get('source')||'').trim()||null})});
+        msg.textContent='草稿保存成功；尚未审核生效。';form.reset();
+      }catch(err){msg.textContent='保存失败：'+(err?.message||'请检查权限')}
+      finally{KB.adminBusy=false;btn.disabled=false}
+    };
+  }
+  async function showDrafts(){
+    const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager'||KB.adminBusy)return;
+    KB.adminBusy=true;host.textContent='正在加载待审核草稿…';
+    try{
+      const rows=await api('/rest/v1/ai_p0_memories?select=id,title,category,scope,memory_key,version,content,created_at,status&status=eq.DRAFT&order=created_at.desc&limit=100');
+      KB.drafts=Array.isArray(rows)?rows:[];
+      host.innerHTML='<h4>待审核草稿（'+KB.drafts.length+'）</h4><p class="muted">批准会替换同编号当前已批准版本，请先核对内容和适用范围。</p>'+
+        (KB.drafts.length?KB.drafts.map(x=>'<div class="kb-item"><h3>'+esc(x.title)+'</h3><div class="kb-meta">'+esc(labels[x.category]||x.category)+' · '+esc(x.scope)+' · '+esc(x.memory_key)+' · V'+esc(x.version)+'</div><pre class="kb-content"></pre><button class="btn blue" data-review-id="'+esc(x.id)+'" data-approve="yes">审核通过</button> <button class="btn gray" data-review-id="'+esc(x.id)+'" data-approve="no">退回草稿</button></div>').join(''):'<p class="muted">当前没有待审核草稿。</p>');
+      host.querySelectorAll('.kb-item').forEach((el,i)=>{el.querySelector('pre').textContent=JSON.stringify(KB.drafts[i].content,null,2)});
+      host.querySelectorAll('[data-review-id]').forEach(b=>b.onclick=()=>reviewDraft(b.dataset.reviewId,b.dataset.approve==='yes'));
+    }catch(err){host.textContent='读取失败：'+(err?.message||'请检查管理员权限')}
+    finally{KB.adminBusy=false}
+  }
+  async function reviewDraft(id,approve){
+    if(S.member.role!=='manager'||KB.adminBusy)return;
+    const x=KB.drafts.find(v=>v.id===id&&v.status==='DRAFT');if(!x)return;
+    if(!confirm((approve?'确认批准并启用':'确认拒绝')+'《'+x.title+'》V'+x.version+'？'+(approve?'同编号原批准版本将被替换。':'')))return;
+    KB.adminBusy=true;
+    const host=document.getElementById('kb-admin');if(host)host.querySelectorAll('[data-review-id]').forEach(b=>b.disabled=true);
+    try{
+      await api('/rest/v1/rpc/ai_p0_review_memory',{method:'POST',body:JSON.stringify({p_memory_id:id,p_approve:approve})});
+      toast(approve?'知识已批准':'知识已拒绝');
+    }catch(err){alert('审核失败：'+(err?.message||'请检查权限'))}
+    finally{KB.adminBusy=false;await showDrafts();await refresh()}
+  }
+
 })();
