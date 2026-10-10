@@ -34,3 +34,10 @@ assert.match(js,/async function submitReviewedKnowledgeAfterRelease/);
 assert.ok(!/service_role|sb_secret_/.test(js),'Client must not contain server secrets');
 assert.ok(css.includes('.kb-search'));
 console.log('Knowledge V1 source contract checks passed. Browser and role-based authorization tests still required.');
+
+// P1 task trace is read-only and uses RLS-protected ERP endpoints.
+assert.match(js,/async function showTaskTrace\(\)/);
+assert.match(js,/\/rest\/v1\/ops_task_events\?select=/);
+assert.match(js,/\/rest\/v1\/ops_task_submissions\?select=/);
+assert.match(js,/data-task-trace-id/);
+console.log('P1 task trace read-only contract checks passed.');
