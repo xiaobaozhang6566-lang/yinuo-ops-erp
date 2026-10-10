@@ -105,6 +105,19 @@
       host.innerHTML='<h4>审核历史（'+records.length+'）</h4>'+records.map(x=>'<div class="kb-audit-event"><strong>'+esc(({MEMORY_APPROVED:'批准',MEMORY_REJECTED:'拒绝'}[x.event_type]||x.event_type))+'</strong> · '+esc(x.created_at?new Date(x.created_at).toLocaleString('zh-CN'):'时间未知')+'<p>审核人编号：'+esc(x.actor_user_id||'未记录')+'</p><p>审核意见：'+esc(x.details?.review_reason||'旧记录未填写意见')+'</p></div>').join('');
     }catch(err){host.textContent='审核历史暂不可读取（可能缺少数据库只读授权）：'+(err?.message||'权限限制')}
   }
+  // This implementation is intentionally unreachable until a separately verified release.
+  // Keep it detached from user controls while the production RPC is absent.
+  async function submitReviewedKnowledgeAfterRelease(item,approve,reason){
+    if(S.member?.role!=='manager')throw new Error('仅管理员可审核');
+    if(!item||item.status!=='DRAFT')throw new Error('知识草稿状态已变更');
+    if(typeof reason!=='string'||reason.trim().length<10||reason.length>2000)throw new Error('审核意见需填写 10-2000 字');
+    const result=await api('/rest/v1/rpc/kb_review_memory_with_reason',{
+      method:'POST',body:JSON.stringify({
+        p_memory_id:item.id,p_approve:Boolean(approve),p_reason:reason.trim()
+      })
+    });
+    return result;
+  }
   async function showDrafts(){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager'||KB.adminBusy)return;
     KB.adminBusy=true;host.textContent='正在加载待审核草稿…';
