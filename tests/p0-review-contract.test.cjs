@@ -30,3 +30,10 @@ assert.match(gate,/revoke execute on function public\.ai_p0_review_memory\(uuid,
 assert.match(gate,/to_regprocedure\('public\.kb_review_memory_with_reason\(uuid,boolean,text\)'\)/);
 assert.match(gate,/grant execute on function public\.kb_review_memory_with_reason\(uuid,boolean,text\) to authenticated/i);
 console.log('P0: release permission gate statically checked; NOT executed against production.');
+
+// Fail closed until production JWT/RLS and legacy RPC permissions are verified.
+assert.match(page,/const REVIEW_RELEASE_ENABLED=false/);
+assert.match(page,/if\(!REVIEW_RELEASE_ENABLED\)throw new Error\('正式审批尚未通过上线验收'\)/);
+assert.match(page,/if\(KB\.adminBusy\)throw new Error\('已有审核操作正在执行'\)/);
+assert.match(page,/finally\{KB\.adminBusy=false\}/);
+console.log('P0: production approval release gate remains disabled.');
