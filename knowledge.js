@@ -121,6 +121,7 @@
     host.innerHTML='<form id="kb-create-form" class="kb-form"><div class="form-grid"><div class="field"><label>知识编号（同编号生成新版本）</label><input class="input" name="key" required minlength="3" maxlength="160" placeholder="例如 VISUAL-HERO-SOP"></div><div class="field"><label>分类</label><select class="input" name="category">'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div><div class="field"><label>适用范围</label><select class="input" name="scope"><option value="COMPANY">公司</option><option value="TEAM">团队</option><option value="STORE">店铺</option><option value="PRODUCT">商品</option></select></div><div class="field"><label>标题</label><input class="input" name="title" required minlength="2" maxlength="250"></div><div class="field wide"><label>知识正文</label><textarea class="input" name="body" required maxlength="20000" rows="8"></textarea></div><div class="field wide"><label>来源说明（可选）</label><input class="input" name="source" maxlength="300" placeholder="原始文件名、任务编号等"></div></div><div id="kb-form-msg" role="alert"></div><button class="btn blue" type="submit">保存为待审核草稿</button></form>';
     if(seed){
       const form=host.querySelector('form');
+      form.dataset.caseSource=seed.source?.startsWith('TASK:')?'TASK_CASE':'';
       for(const [key,value] of Object.entries(seed)){
         const field=form.elements.namedItem(key);
         if(field)field.value=String(value??'');
@@ -132,9 +133,12 @@
       const form=ev.currentTarget,btn=form.querySelector('button[type="submit"]'),msg=document.getElementById('kb-form-msg');
       const fd=new FormData(form),body=String(fd.get('body')||'').trim(),title=String(fd.get('title')||'').trim(),key=String(fd.get('key')||'').trim();
       if(!body||title.length<2||key.length<3){msg.textContent='请完整填写知识编号、标题和内容。';return}
+      if(form.dataset.caseSource==='TASK_CASE' && (/\[[^\]]*(请填写|请补充)[^\]]*\]/.test(body) || !String(fd.get('source')||'').startsWith('TASK:'))){
+        msg.textContent='请先填写问题描述、已核验的根因、防复发措施和证据链接，再保存案例草稿。';return;
+      }
       KB.adminBusy=true;btn.disabled=true;msg.textContent='正在保存草稿…';
       try{
-        await api('/rest/v1/rpc/ai_p0_save_memory',{method:'POST',body:JSON.stringify({p_scope:fd.get('scope'),p_key:key,p_category:fd.get('category'),p_title:title,p_content:{body},p_source_type:'MANUAL',p_source_ref:String(fd.get('source')||'').trim()||null})});
+        await api('/rest/v1/rpc/ai_p0_save_memory',{method:'POST',body:JSON.stringify({p_scope:fd.get('scope'),p_key:key,p_category:fd.get('category'),p_title:title,p_content:{body},p_source_type:form.dataset.caseSource==='TASK_CASE'?'TASK_CASE':'MANUAL',p_source_ref:String(fd.get('source')||'').trim()||null})});
         msg.textContent='草稿保存成功；尚未审核生效。';form.reset();
       }catch(err){msg.textContent='保存失败：'+(err?.message||'请检查权限')}
       finally{KB.adminBusy=false;btn.disabled=false}
