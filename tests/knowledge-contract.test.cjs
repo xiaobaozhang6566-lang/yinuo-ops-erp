@@ -30,7 +30,7 @@ assert.match(js,/expires_at/);
 assert.match(js,/Boolean\(r\.reviewed_at\)/);
 assert.match(js,/Date\.parse\(r\.expires_at\)>now/);
 assert.match(js,/status=eq\.APPROVED/);
-assert.doesNotMatch(js,/\/rpc\/kb_review_memory_with_reason/,'Production review submission is not enabled');
+assert.match(js,/async function submitReviewedKnowledgeAfterRelease/);
 assert.ok(!/service_role|sb_secret_/.test(js),'Client must not contain server secrets');
 assert.ok(css.includes('.kb-search'));
 console.log('Knowledge V1 source contract checks passed. Browser and role-based authorization tests still required.');
