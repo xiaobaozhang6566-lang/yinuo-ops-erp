@@ -107,7 +107,7 @@
                 '防复发措施：[请填写可执行的措施]',
                 '证据链接：[请补充]',
                 '说明：此文本为任务记录辅助整理，须核对后保存为草稿，未经审批不得生效。'
-              ].join('\\n');
+              ].join('\n');
               showCreate({category:'LESSON',scope:'COMPANY',key:'TASK-CASE-'+String(rows.find(t=>t.id===btn.dataset.taskTraceId)?.task_no||'').trim(),title:'任务案例：'+String(rows.find(t=>t.id===btn.dataset.taskTraceId)?.title||''),body,source:'TASK:'+btn.dataset.taskTraceId});
             };
           }
