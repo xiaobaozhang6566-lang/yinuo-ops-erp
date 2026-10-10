@@ -61,3 +61,10 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f sql/kb_review_with_reason_TEST_ONLY.sql
       - name: Run transaction and authorization cases
         run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_local_cases.sql
+
+      - name: Prepare employee RLS fixtures
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_employee_rls_fixture.sql
+      - name: Install candidate company read policy
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/p0_employee_company_read_CANDIDATE.sql
+      - name: Check employee RLS visibility
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_employee_rls_cases.sql
