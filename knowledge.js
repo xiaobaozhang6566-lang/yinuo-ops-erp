@@ -86,6 +86,16 @@
     const names={summary:'核心规则',body:'知识正文',description:'说明',imported_date:'导入日期',review_required:'需要审核'};
     return Object.entries(data).map(([k,v])=>(names[k]||k)+'：'+(typeof v==='boolean'?(v?'是':'否'):typeof v==='object'?JSON.stringify(v):String(v))).join('\n\n');
   }
+  async function showVersionHistory(item,card){
+    const host=card.querySelector('.kb-version-history');if(!host)return;
+    host.textContent='正在读取版本历史…';
+    try{
+      const filters='&scope=eq.'+encodeURIComponent(item.scope)+'&memory_key=eq.'+encodeURIComponent(item.memory_key);
+      const rows=await api('/rest/v1/ai_p0_memories?select=id,title,version,status,created_at,reviewed_at,effective_at&order=version.desc&limit=50'+filters);
+      if(!Array.isArray(rows)||!rows.length){host.textContent='暂无版本记录。';return}
+      host.innerHTML='<h4>版本历史（'+rows.length+'）</h4>'+rows.map(v=>'<div class="kb-audit-event"><strong>V'+esc(v.version)+'</strong> · '+esc(({APPROVED:'已批准',DRAFT:'草稿',SUPERSEDED:'已被替代',REJECTED:'已拒绝'}[v.status]||v.status))+'<p>创建时间：'+esc(v.created_at?new Date(v.created_at).toLocaleString('zh-CN'):'未记录')+'</p></div>').join('');
+    }catch(err){host.textContent='版本历史暂不可读取：'+(err?.message||'权限不足')}
+  }
   async function showAuditHistory(id,card){
     const host=card.querySelector('.kb-audit-history');if(!host)return;
     host.textContent='正在读取审核历史…';
@@ -114,9 +124,10 @@
         card.appendChild(reviewNote);
         const details=document.createElement('div');
         details.className='kb-detail-panel';
-        details.innerHTML='<h4>知识详情</h4><p>适用范围：'+esc(item.scope)+' · 分类：'+esc(labels[item.category]||item.category)+'</p><p>知识编号：'+esc(item.memory_key)+' · 版本：V'+esc(item.version)+'</p><button type="button" class="btn gray kb-audit-toggle">查看审核历史</button><div class="kb-audit-history" aria-live="polite"></div>';
+        details.innerHTML='<h4>知识详情</h4><p>适用范围：'+esc(item.scope)+' · 分类：'+esc(labels[item.category]||item.category)+'</p><p>知识编号：'+esc(item.memory_key)+' · 版本：V'+esc(item.version)+'</p><button type="button" class="btn gray kb-audit-toggle">查看审核历史</button> <button type="button" class="btn gray kb-version-toggle">查看版本历史</button><div class="kb-audit-history" aria-live="polite"></div><div class="kb-version-history" aria-live="polite"></div>';
         card.appendChild(details);
         details.querySelector('.kb-audit-toggle').onclick=()=>showAuditHistory(item.id,details);
+        details.querySelector('.kb-version-toggle').onclick=()=>showVersionHistory(item,details);
         card.appendChild(form);
         const field=form.querySelector('textarea'),counter=form.querySelector('.kb-char-count');
         field.addEventListener('input',()=>{const n=field.value.trim().length;counter.textContent=n>=10?'已输入 '+n+' 字，可进行模拟预览':'已输入 '+n+' 字，还需 '+(10-n)+' 字';form.querySelector('.kb-review-feedback').textContent='';});
