@@ -37,3 +37,13 @@ assert.match(page,/if\(!REVIEW_RELEASE_ENABLED\)throw new Error\('正式审批�
 assert.match(page,/if\(KB\.adminBusy\)throw new Error\('已有审核操作正在执行'\)/);
 assert.match(page,/finally\{KB\.adminBusy=false\}/);
 console.log('P0: production approval release gate remains disabled.');
+
+const employeePolicy=fs.readFileSync('sql/p0_employee_company_read_CANDIDATE.sql','utf8');
+assert.match(employeePolicy,/scope='COMPANY'/);
+assert.match(employeePolicy,/status='APPROVED'/);
+assert.match(employeePolicy,/reviewed_at is not null/);
+assert.match(employeePolicy,/effective_at <= now\(\)/);
+assert.match(employeePolicy,/expires_at is null or expires_at > now\(\)/);
+assert.match(employeePolicy,/m\.is_active=true/);
+assert.doesNotMatch(employeePolicy,/scope\s+in\s*\(/i);
+console.log('P0: active member company-only access candidate checked; no deployment.');
