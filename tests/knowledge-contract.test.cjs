@@ -46,3 +46,8 @@ assert.match(js,/整理为经验案例草稿/);
 assert.match(js,/showCreate\(\{category:'LESSON'/);
 assert.match(js,/未经审批不得生效/);
 console.log('P1 task-to-lesson draft contract passed.');
+
+assert.match(js,/form\.dataset\.caseSource==='TASK_CASE'/);
+assert.match(js,/p_source_type:form\.dataset\.caseSource==='TASK_CASE'\?'TASK_CASE':'MANUAL'/);
+assert.match(js,/请先填写问题描述、已核验的根因/);
+console.log('P1 case draft completeness checks passed.');
