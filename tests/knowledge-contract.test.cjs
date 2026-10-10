@@ -41,3 +41,8 @@ assert.match(js,/\/rest\/v1\/ops_task_events\?select=/);
 assert.match(js,/\/rest\/v1\/ops_task_submissions\?select=/);
 assert.match(js,/data-task-trace-id/);
 console.log('P1 task trace read-only contract checks passed.');
+
+assert.match(js,/整理为经验案例草稿/);
+assert.match(js,/showCreate\(\{category:'LESSON'/);
+assert.match(js,/未经审批不得生效/);
+console.log('P1 task-to-lesson draft contract passed.');
