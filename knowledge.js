@@ -16,7 +16,7 @@
   function renderShell(){
     const host=document.getElementById('c');if(!host)return;
     host.innerHTML='<div class="kb-header"><div><div class="kb-eyebrow">YINUO AI OS · V1</div><h2>企业知识中心</h2><p class="muted">仅展示当前账号有权限阅读的已批准、有效知识。</p></div><span class="pill">管理员草稿审核试点</span></div>'+
-    (S.member.role==='manager'?'<div class="panel"><div class="body"><h3>知识管理 · 管理员</h3><p class="muted">新增知识默认保存为草稿，不会自动生效。</p><button class="btn blue" id="kb-new">录入知识草稿</button> <button class="btn gray" id="kb-review">查看待审核草稿</button><div id="kb-admin" aria-live="polite"></div></div></div>':'')+'<div class="panel"><div class="body"><div class="kb-search"><input id="kb-query" class="input" placeholder="输入标题、SOP 或商品关键词" value="'+esc(KB.query)+'"><select id="kb-category" class="input"><option value="">全部分类</option>'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'" '+(KB.category===k?'selected':'')+'>'+v+'</option>').join('')+'</select><button id="kb-search-btn" class="btn blue">搜索</button></div><div class="kb-hint">如看不到知识，可能是尚未批准，或当前账号未获得授权。</div><div id="kb-results" aria-live="polite"></div></div></div>';
+    (S.member.role==='manager'?'<div class="panel"><div class="body"><h3>知识管理 · 管理员</h3><p class="muted">新增知识默认保存为草稿，不会自动生效。</p><button class="btn blue" id="kb-new">录入知识草稿</button> <button class="btn gray" id="kb-review">查看待审核草稿</button><div id="kb-admin" aria-live="polite"></div></div></div>':'')+'<div class="panel"><div class="body"><h3>任务执行留痕 · P1</h3><p class="muted">只读展示 ERP 任务事件及提交记录，数据按当前账号权限筛选。</p><button id="kb-task-trace-load" class="btn gray" type="button">查看任务留痕</button><div id="kb-task-trace-results" aria-live="polite"></div></div></div>'+'<div class="panel"><div class="body"><div class="kb-search"><input id="kb-query" class="input" placeholder="输入标题、SOP 或商品关键词" value="'+esc(KB.query)+'"><select id="kb-category" class="input"><option value="">全部分类</option>'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'" '+(KB.category===k?'selected':'')+'>'+v+'</option>').join('')+'</select><button id="kb-search-btn" class="btn blue">搜索</button></div><div class="kb-hint">如看不到知识，可能是尚未批准，或当前账号未获得授权。</div><div id="kb-results" aria-live="polite"></div></div></div>';
     document.getElementById('kb-query').oninput=ev=>KB.query=ev.target.value;
     document.getElementById('kb-query').onkeydown=ev=>{if(ev.key==='Enter')refresh()};
     document.getElementById('kb-category').onchange=ev=>{KB.category=ev.target.value;refresh()};
@@ -25,6 +25,7 @@
       document.getElementById('kb-new').onclick=showCreate;
       document.getElementById('kb-review').onclick=showDrafts;
     }
+    const traceBtn=document.getElementById('kb-task-trace-load');if(traceBtn)traceBtn.onclick=showTaskTrace;
     paint();if(!KB.busy)refresh();
   }
   function paint(){
@@ -66,6 +67,34 @@
     }finally{KB.busy=false;paint()}
   }
 
+  // P1 read-only task evidence explorer: task/event RLS is enforced server-side.
+  async function showTaskTrace(){
+    const host=document.getElementById('kb-task-trace-results');
+    if(!host)return;
+    host.textContent='正在读取有权限的任务…';
+    try{
+      const rows=await api('/rest/v1/ops_tasks?select=id,task_no,title,status,task_date&order=task_date.desc&limit=30');
+      if(!Array.isArray(rows)){host.textContent='任务接口未返回列表。';return;}
+      host.innerHTML='<p class="muted">仅显示当前账号有权查看的最近 '+rows.length+' 条任务；点击查询事件与提交记录。</p>'+
+        (rows.length?rows.map(t=>'<div class="kb-item"><div><strong>任务 #'+esc(t.task_no||'—')+'</strong> · '+esc(t.title||'未命名任务')+' · '+esc(t.status||'')+'</div><button type="button" class="btn gray" data-task-trace-id="'+esc(t.id)+'">查看留痕</button><div class="kb-task-events" aria-live="polite"></div></div>').join(''):'<p class="muted">暂无可读取任务。</p>');
+      host.querySelectorAll('[data-task-trace-id]').forEach(btn=>btn.onclick=async()=>{
+        const slot=btn.closest('.kb-item').querySelector('.kb-task-events');
+        btn.disabled=true;slot.textContent='正在读取任务留痕…';
+        try{
+          const id=encodeURIComponent(btn.dataset.taskTraceId);
+          const [events,submissions]=await Promise.all([
+            api('/rest/v1/ops_task_events?select=id,event_type,detail,created_at&task_id=eq.'+id+'&order=created_at.desc&limit=40'),
+            api('/rest/v1/ops_task_submissions?select=id,attempt_no,result,note,review_status,submitted_at&task_id=eq.'+id+'&order=submitted_at.desc&limit=20')
+          ]);
+          const ev=Array.isArray(events)?events:[],sub=Array.isArray(submissions)?submissions:[];
+          slot.innerHTML='<h4>事件（'+ev.length+'）</h4>'+(ev.map(x=>'<div class="kb-audit-event"><strong>'+esc(x.event_type||'任务事件')+'</strong> · '+esc(x.created_at||'')+'<pre class="kb-content"></pre></div>').join('')||'<p class="muted">暂无事件。</p>')+
+            '<h4>提交（'+sub.length+'）</h4>'+(sub.map(x=>'<div class="kb-audit-event"><strong>第 '+esc(x.attempt_no)+' 次提交</strong> · '+esc(x.review_status||'待审核')+' · '+esc(x.submitted_at||'')+'<p>'+esc(x.result||'')+'</p><p>'+esc(x.note||'')+'</p></div>').join('')||'<p class="muted">暂无提交。</p>');
+          slot.querySelectorAll('.kb-audit-event pre').forEach((el,i)=>{el.textContent=JSON.stringify(ev[i].detail||{},null,2)});
+        }catch(err){slot.textContent='留痕读取失败：'+(err?.message||'当前账号无权访问');}
+        finally{btn.disabled=false;}
+      });
+    }catch(err){host.textContent='任务列表读取失败：'+(err?.message||'权限不足')}
+  }
   function showCreate(){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager')return;
     host.innerHTML='<form id="kb-create-form" class="kb-form"><div class="form-grid"><div class="field"><label>知识编号（同编号生成新版本）</label><input class="input" name="key" required minlength="3" maxlength="160" placeholder="例如 VISUAL-HERO-SOP"></div><div class="field"><label>分类</label><select class="input" name="category">'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div><div class="field"><label>适用范围</label><select class="input" name="scope"><option value="COMPANY">公司</option><option value="TEAM">团队</option><option value="STORE">店铺</option><option value="PRODUCT">商品</option></select></div><div class="field"><label>标题</label><input class="input" name="title" required minlength="2" maxlength="250"></div><div class="field wide"><label>知识正文</label><textarea class="input" name="body" required maxlength="20000" rows="8"></textarea></div><div class="field wide"><label>来源说明（可选）</label><input class="input" name="source" maxlength="300" placeholder="原始文件名、任务编号等"></div></div><div id="kb-form-msg" role="alert"></div><button class="btn blue" type="submit">保存为待审核草稿</button></form>';
