@@ -24,6 +24,8 @@ assert.match(js,/review_reason/);
 assert.match(js,/当前为模拟确认/);
 assert.match(js,/r\.status==='APPROVED'/);
 assert.match(js,/effective_at/);
+assert.match(js,/Boolean\(r\.reviewed_at\)/);
+assert.match(js,/Number\.isFinite\(Date\.parse\(r\.effective_at\)\)/);
 assert.match(js,/expires_at/);
 assert.ok(!/service_role|sb_secret_/.test(js),'Client must not contain server secrets');
 assert.ok(css.includes('.kb-search'));
