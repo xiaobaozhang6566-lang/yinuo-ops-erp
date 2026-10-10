@@ -10,7 +10,7 @@
   };
   function valid(r){
     const now=Date.now();
-    return r.status==='APPROVED'&&(!r.effective_at||new Date(r.effective_at).getTime()<=now)&&(!r.expires_at||new Date(r.expires_at).getTime()>now);
+    return r.status==='APPROVED'&&Boolean(r.reviewed_at)&&Boolean(r.effective_at)&&Number.isFinite(Date.parse(r.effective_at))&&Date.parse(r.effective_at)<=now&&(!r.expires_at||(Number.isFinite(Date.parse(r.expires_at))&&Date.parse(r.expires_at)>now));
   }
   function renderShell(){
     const host=document.getElementById('c');if(!host)return;
@@ -57,7 +57,7 @@
     if(S.page!=='knowledge'||KB.busy)return;
     KB.busy=true;KB.error='';paint();
     try{
-      const fields='id,scope,memory_key,version,category,title,content,status,effective_at,expires_at,source_type,source_ref';
+      const fields='id,scope,memory_key,version,category,title,content,status,effective_at,expires_at,source_type,source_ref,reviewed_at';
       const rows=await api('/rest/v1/ai_p0_memories?select='+fields+'&status=eq.APPROVED&order=title.asc&limit=300');
       KB.items=Array.isArray(rows)?rows.filter(valid):[];
     }catch(err){
