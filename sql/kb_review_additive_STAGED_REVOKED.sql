@@ -62,11 +62,12 @@ end;
 $body$;
 -- Fail closed: avoid authorizing this SECURITY DEFINER RPC until real JWT and review signoff.
 revoke all on function public.kb_review_memory_with_reason(uuid,boolean,text)
-  from public, anon, authenticated;
+  from public, anon, authenticated, service_role;
 DO $verify$
 BEGIN
   IF has_function_privilege('authenticated','public.kb_review_memory_with_reason(uuid,boolean,text)','EXECUTE')
-     OR has_function_privilege('anon','public.kb_review_memory_with_reason(uuid,boolean,text)','EXECUTE') THEN
+     OR has_function_privilege('anon','public.kb_review_memory_with_reason(uuid,boolean,text)','EXECUTE')
+     OR has_function_privilege('service_role','public.kb_review_memory_with_reason(uuid,boolean,text)','EXECUTE') THEN
     RAISE EXCEPTION 'staging unsafe: review RPC unexpectedly executable via API';
   END IF;
 END;
