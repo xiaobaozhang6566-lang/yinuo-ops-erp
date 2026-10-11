@@ -7,9 +7,14 @@ on:
     branches:
       - main
   workflow_dispatch:
+concurrency:
+  group: knowledge-safety-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   static-contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -31,6 +36,7 @@ jobs:
 
   postgres-integration:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     services:
