@@ -16,10 +16,14 @@ const checks=[
       &&required(kb,'REVIEW_RELEASE_ENABLED=false')
       &&required(kb,'审核通过（待开放）'),
     evidence:'Read-only provenance and risk checklist; knowledge approval remains disabled.'},
-  {id:'P2-AI-SUMMARY-SERVER',pass:exists('api/kb-draft-summary.js')
+  {id:'P2-AI-SUMMARY-IMPLEMENTATION',pass:exists('api/kb-draft-summary.js')
       &&exists('tests/ai-draft-summary.test.cjs')
-      &&required(workflow,'node tests/ai-draft-summary.test.cjs'),
-    evidence:'Requires a server-backed AI summary and a registered automated safety test. Static file presence alone is not full authorization.'},
+      &&exists('tests/browser-api-integration.cjs')
+      &&required(workflow,'node tests/ai-draft-summary.test.cjs')
+      &&required(workflow,'node tests/browser-api-integration.cjs'),
+    evidence:'Server handler, authorization tests and integrated browser-to-handler synthetic-provider CI. No live model was contacted.'},
+  {id:'P2-AI-LIVE-SIGNOFF',pass:false,
+    evidence:'Requires separately approved Preview-only AI configuration, an actual provider response, model cost and privacy review, and a recorded pass at the release SHA.'},
   {id:'P4-BROWSER-E2E',pass:exists('tests/browser-e2e.cjs')
       &&required(workflow,'node tests/browser-e2e.cjs'),
     evidence:'Playwright isolated mock-backend browser E2E is registered.'},
@@ -31,7 +35,7 @@ const checks=[
   {id:'P0-PRODUCTION-SIGNOFF',pass:false,
     evidence:'Requires separately authorized production permissions/migration assessment and rollback approval.'}
 ];
-assert.equal(checks.length,7);
+assert.equal(checks.length,8);
 const passed=checks.filter(x=>x.pass).length;
 const blocked=checks.filter(x=>!x.pass).map(x=>x.id);
 const report={release:'AI-Second-Brain-V1.0',branch:process.env.GITHUB_REF_NAME||'local',
