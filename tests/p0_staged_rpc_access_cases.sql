@@ -3,6 +3,7 @@ DO $guard$ BEGIN
  IF to_regprocedure('public.kb_review_memory_with_reason(uuid,boolean,text)') IS NULL THEN RAISE EXCEPTION 'new RPC missing'; END IF;
  IF has_function_privilege('authenticated','public.kb_review_memory_with_reason(uuid,boolean,text)','EXECUTE') THEN RAISE EXCEPTION 'authenticated may invoke staged RPC'; END IF;
  IF has_function_privilege('anon','public.kb_review_memory_with_reason(uuid,boolean,text)','EXECUTE') THEN RAISE EXCEPTION 'anon may invoke staged RPC'; END IF;
+ IF has_function_privilege('service_role','public.kb_review_memory_with_reason(uuid,boolean,text)','EXECUTE') THEN RAISE EXCEPTION 'service_role may invoke staged RPC'; END IF;
 END $guard$;
 SET ROLE authenticated;
 DO $guard$ BEGIN
