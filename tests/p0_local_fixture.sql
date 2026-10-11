@@ -28,6 +28,19 @@ create table public.ai_p0_audit_log (
 grant usage on schema public,auth,private to authenticated;
 grant select on public.ai_p0_memories,public.ai_p0_audit_log to authenticated;
 grant execute on function auth.uid(),private.is_ops_manager() to authenticated;
+
+-- Synthetic legacy approval RPC for non-destructive compatibility fingerprinting.
+-- Not the actual production function; isolate signature and ACL survival only.
+create function public.ai_p0_review_memory(p_memory_id uuid,p_approve boolean)
+returns text language plpgsql security definer set search_path = ''
+as $legacy_fixture$
+begin
+  return 'SYNTHETIC_LEGACY_RPC_NOT_FOR_PRODUCTION';
+end;
+$legacy_fixture$;
+revoke all on function public.ai_p0_review_memory(uuid,boolean) from public,anon;
+grant execute on function public.ai_p0_review_memory(uuid,boolean) to authenticated,service_role;
+
 insert into public.ai_p0_memories(id,scope,memory_key,version,title,status)
 values
 ('11111111-1111-4111-8111-111111111111','COMPANY','EXAMPLE-A',1,'Previous','APPROVED'),
