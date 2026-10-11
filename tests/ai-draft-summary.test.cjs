@@ -19,7 +19,7 @@ function run(body,role='manager',opts={}){
     return {ok:true,json:async()=>data};
   };
   const res={status(n){this.code=n;return this},json(o){this.data=o;return this},setHeader(){return this}};
-  return Promise.resolve(handler({method:opts.method||'POST',body:body||{memory_id:id},headers:{...(opts.noAuth?{}:{authorization:'Bearer fake.jwt'}),'content-type':opts.contentType||'application/json',...(opts.contentLength?{'content-length':opts.contentLength}:{})}},res))
+  return Promise.resolve(handler({method:opts.method||'POST',body:body&&Object.keys(body).length?body:{memory_id:id},headers:{...(opts.noAuth?{}:{authorization:'Bearer fake.jwt'}),'content-type':opts.contentType||'application/json',...(opts.contentLength?{'content-length':opts.contentLength}:{})}},res))
     .then(()=>({res,calls})).finally(()=>{global.fetch=fetchOriginal;for(const key of Object.keys(env)){if(saved[key]===undefined)delete process.env[key];else process.env[key]=saved[key]}});
 }
 (async()=>{
