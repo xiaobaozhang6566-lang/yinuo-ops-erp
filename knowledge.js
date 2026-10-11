@@ -133,8 +133,17 @@
       const form=ev.currentTarget,btn=form.querySelector('button[type="submit"]'),msg=document.getElementById('kb-form-msg');
       const fd=new FormData(form),body=String(fd.get('body')||'').trim(),title=String(fd.get('title')||'').trim(),key=String(fd.get('key')||'').trim();
       if(!body||title.length<2||key.length<3){msg.textContent='请完整填写知识编号、标题和内容。';return}
-      if(form.dataset.caseSource==='TASK_CASE' && (/\[[^\]]*(请填写|请补充)[^\]]*\]/.test(body) || !String(fd.get('source')||'').startsWith('TASK:'))){
-        msg.textContent='请先填写问题描述、已核验的根因、防复发措施和证据链接，再保存案例草稿。';return;
+      if(form.dataset.caseSource==='TASK_CASE'){
+        const required=['问题描述','复盘原因','防复发措施','证据链接'];
+        const lines=body.split(/\r?\n/);
+        const missing=required.filter(label=>{
+          const line=lines.find(x=>x.startsWith(label+'：'));
+          const value=line?.slice((label+'：').length).trim()||'';
+          return !value||/^\[[^\]]*\]$/.test(value)||/\[(请填写|请补充)[^\]]*\]/.test(value);
+        });
+        if(missing.length||!/^TASK:[0-9a-f-]{36}$/i.test(String(fd.get('source')||'').trim())){
+          msg.textContent='案例缺少有效的'+(missing.join('、')||'关联任务来源')+'；请补齐真实证据并核对任务编号后保存。';return;
+        }
       }
       KB.adminBusy=true;btn.disabled=true;msg.textContent='正在保存草稿…';
       try{
