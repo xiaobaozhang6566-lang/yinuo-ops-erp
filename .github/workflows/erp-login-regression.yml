@@ -1,0 +1,16 @@
+name: ERP V1.4 Login Freeze Regression
+on:
+  push:
+    branches:
+      - fix/erp-v14-login-freeze
+  workflow_dispatch:
+jobs:
+  version-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check app.js && node --check v13.js && node --check v14.js
+      - run: node tests/version-observer-login-regression.cjs
