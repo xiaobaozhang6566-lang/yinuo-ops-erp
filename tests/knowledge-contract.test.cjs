@@ -49,7 +49,7 @@ console.log('P1 task-to-lesson draft contract passed.');
 
 assert.match(js,/form\.dataset\.caseSource==='TASK_CASE'/);
 assert.match(js,/p_source_type:form\.dataset\.caseSource==='TASK_CASE'\?'TASK_CASE':'MANUAL'/);
-assert.match(js,/请先填写问题描述、已核验的根因/);
+assert.match(js,/案例缺少有效的/);
 console.log('P1 case draft completeness checks passed.');
 
 assert.match(js,/const required=\['问题描述','复盘原因','防复发措施','证据链接'\]/);
