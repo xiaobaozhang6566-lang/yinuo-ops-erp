@@ -71,3 +71,7 @@ assert.match(js,/本行已截断/);
 assert.match(js,/审核前必须阅读完整原文/);
 assert.match(js,/第 '\+x\.line\+' 行/);
 console.log('P2 evidence provenance and truncation warnings contract passed.');
+
+// P2 provenance preview requires source fields in the DRAFT read query.
+assert.match(js,/select=id,title,category,scope,memory_key,version,content,created_at,status,source_type,source_ref&status=eq\.DRAFT/);
+console.log('P2 draft provenance query contract passed.');
