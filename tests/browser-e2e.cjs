@@ -43,6 +43,7 @@ async function scenario(browser,role){
   });
   // Mock POST member list separately, so all authorized setup requests remain isolated.
   await page.route(SUPABASE+'rest/v1/rpc/ops_list_members',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{user_id:managerId,role:'manager',is_active:true,display_name:'演示管理员'}])}));
+  await page.route('**/api/kb-draft-summary',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'AI_SUMMARY_DISABLED'})}));
   await page.goto(HOST+'/index.html',{waitUntil:'domcontentloaded'});
   await page.getByRole('button',{name:'AI 知识中心'}).click();
   await page.getByText('已批准测试知识').waitFor();
@@ -56,6 +57,9 @@ async function scenario(browser,role){
     await page.getByRole('button',{name:'查看待审核草稿'}).click();
     await page.getByText('审核前测试草稿').waitFor();
     assert.equal(await page.getByRole('button',{name:'审核通过（待开放）'}).isDisabled(),true);
+    await page.getByRole('button',{name:'生成 AI 草稿总结（试点）'}).click();
+    await page.getByText('AI 总结尚未在服务端启用',{exact:false}).waitFor();
+    assert.equal(await page.getByRole('button',{name:'生成 AI 草稿总结（试点）'}).isDisabled(),false);
     await page.getByRole('button',{name:'生成审核风险清单（规则检查）'}).click();
     await page.getByText('来源不完整：缺少来源类型或原始编号。',{exact:false}).waitFor();
     await page.getByRole('button',{name:'生成审核前原文摘录（只读）'}).click();
