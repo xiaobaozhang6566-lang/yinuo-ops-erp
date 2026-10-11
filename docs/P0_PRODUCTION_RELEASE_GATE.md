@@ -11,6 +11,15 @@
 - 生产新 RPC `kb_review_memory_with_reason(uuid,boolean,text)` 不存在。旧 RPC 存在，`authenticated` 和 `service_role` 仍有 EXECUTE，且旧调用方尚未充分确认。
 - 目前 12 条 DRAFT、0 APPROVED，不能用生产草稿充当测试样本。
 
+## 生产备份与旧接口调用核实（2026-10-11）
+
+- 实际 Supabase 组织 `pqadmfjdtglnfypczzrf` 套餐为 **Free**（管理 API 只读查询）；项目 `iscadepgzegrvcqzosso` 为 `ACTIVE_HEALTHY`。官方数据库自动每日备份覆盖 Pro/Team/Enterprise，不能把 Free 方案视为已有可验证的每日自动备份。官方说明：https://supabase.com/docs/guides/platform/backups
+- **生产数据库尚未验证存在可恢复备份或恢复演练**。必须由授权的数据库负责人先用受控数据库导出方案生成安全备份，确认备份文件受限存储、还原至隔离环境可用且记录恢复点，或者先明确取得合规备份服务；不能仅凭 SQL 脚本回滚替代数据备份。
+- 旧 `ai_p0_review_memory(uuid,boolean)` 的函数体、API 授权和内部依赖已只读核实。已检查 main/feature 仓库可见的 JS 和 SQL 函数调用；未发现直接调用方。最近 24 小时的可查询 `postgrest_logs` / `edge_logs` 中未检出对应 `/rpc/ai_p0_review_memory` 路径；**日志窗口和覆盖范围有限，不可据此认定没有历史或外部客户端调用**。
+- 函数本身保留管理员服务端判权，但旧 RPC 不强制审核原因，因此不能与新版带原因的正式审核流程长期并行开放。
+- 未经备份核查、签核及真实 JWT 验收，**不执行** `sql/kb_review_additive_STAGED_REVOKED.sql` 或任何生产 DDL；更不执行执行授权切换。
+- 本段属于只读生产巡检证据，不表示正式生产迁移已获授权。
+
 ## 真实 JWT 验收（只读，不上传令牌）
 
 在受信任的执行端本地设置临时环境变量 `SUPABASE_PUBLISHABLE_KEY`、`YINUO_MANAGER_TEST_JWT`、`YINUO_EMPLOYEE_TEST_JWT`，执行 `node tests/real-jwt-roles-readonly.cjs`。只查询 `auth/v1/user`、`ops_members`、草稿的最小字段和任务 ID。脚本不记录令牌，不调用审批、不写知识。结束后销毁临时令牌环境。遇到账号授权信息不一致停止，不扩大授权。
