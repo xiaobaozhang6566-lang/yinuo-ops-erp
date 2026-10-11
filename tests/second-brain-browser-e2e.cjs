@@ -36,7 +36,7 @@ async function check(browser,role){
    await p.getByText('内部草稿').waitFor();
    await p.getByRole('button',{name:'预览来源与风险'}).click();
    await p.getByText(/尚未完成正式审核/).waitFor();
-   assert.equal(await p.getByText('正式审批').count(),0);
+   assert.equal(await p.getByRole('button',{name:/审核通过|正式审批|保存草稿/}).count(),0);
  }else{
    assert.equal(await p.getByText('知识草稿与审核证据').count(),0);
    assert.equal(methods.some(x=>x.path==='/rest/v1/ai_p0_audit_log'),false);
