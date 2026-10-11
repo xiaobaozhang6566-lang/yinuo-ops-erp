@@ -2,10 +2,11 @@ const assert=require('node:assert/strict');
 const handler=require('../api/kb-draft-summary.js');
 const id='11111111-1111-4111-8111-111111111111';
 const uid='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const env={AI_SUMMARY_ENABLED:'true',OPENAI_API_KEY:'test-only',SUPABASE_URL:'https://iscadepgzegrvcqzosso.supabase.co',SUPABASE_PUBLISHABLE_KEY:'test-only'};
+const env={AI_SUMMARY_ENABLED:'true',AI_SUMMARY_EXTERNAL_TRANSFER_APPROVED:'true',OPENAI_API_KEY:'test-only',SUPABASE_URL:'https://iscadepgzegrvcqzosso.supabase.co',SUPABASE_PUBLISHABLE_KEY:'test-only'};
 function run(body,role='manager',opts={}){
   const saved={};for(const key of Object.keys(env)){saved[key]=process.env[key];process.env[key]=env[key];}
   if(opts.disabled)process.env.AI_SUMMARY_ENABLED='false';
+  if(opts.transferNotApproved)process.env.AI_SUMMARY_EXTERNAL_TRANSFER_APPROVED='false';
   let calls=[];let draftReads=0;let authReads=0;let memberReads=0;
   const fetchOriginal=global.fetch;
   global.fetch=async(url,req={})=>{
@@ -26,7 +27,9 @@ function run(body,role='manager',opts={}){
  assert.throws(()=>handler._test.grounded({summary:'bad',evidence:[{line:3,quote:'fabricated'}],questions:[]},['Fact']),/unsupported_quote/);
  assert.throws(()=>handler._test.grounded({summary:'',evidence:[{line:1,quote:'First fact'}],questions:[]},['First fact line']),/invalid_ai_output/);
  assert.throws(()=>handler._test.grounded({summary:'Test',evidence:[{line:1,quote:'[待核实]'}],questions:[]},['[待核实]']),/unsupported_quote/);
- let result=await run({},'manager',{disabled:true});
+ let result=await run({},'manager',{transferNotApproved:true});
+ assert.equal(result.res.code,503);assert.equal(result.res.data.error,'EXTERNAL_AI_TRANSFER_NOT_APPROVED');assert.equal(result.calls.length,0);
+ result=await run({},'manager',{disabled:true});
  assert.equal(result.res.code,503);assert.equal(result.calls.length,0);
  result=await run({},'employee');
  assert.equal(result.res.code,403);assert.ok(!result.calls.some(x=>x.url.includes('api.openai.com')));
