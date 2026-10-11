@@ -126,7 +126,9 @@ jobs:
         run: node tests/browser-api-integration.cjs
 
   release-merge-gate:
-    if: github.event_name == 'pull_request'
+    # Always run on PR even when an upstream job fails; fail closed explicitly.
+    needs: [static-contract, postgres-integration, preview-http-smoke, browser-e2e]
+    if: ${{ always() && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -136,5 +138,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Require every P1/P2/P4 CI job to pass
+        env:
+          STATIC_RESULT: ${{ needs.static-contract.result }}
+          POSTGRES_RESULT: ${{ needs.postgres-integration.result }}
+          HTTP_RESULT: ${{ needs.preview-http-smoke.result }}
+          BROWSER_RESULT: ${{ needs.browser-e2e.result }}
+        run: node tests/release-upstream-gate.cjs
       - name: Require complete V1.0 release evidence before main merge
         run: node tests/release-readiness.cjs --enforce
