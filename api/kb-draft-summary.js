@@ -13,22 +13,31 @@ const request=async(url,options)=>{
   return response.json();
 };
 function grounded(answer,lines){
-  if(!answer||typeof answer.summary!=='string'||answer.summary.length>1200||
+  if(!answer||typeof answer.summary!=='string'||!answer.summary.trim()||answer.summary.length>1200||
      !Array.isArray(answer.evidence)||answer.evidence.length<1||answer.evidence.length>6||
      !Array.isArray(answer.questions)||answer.questions.length>8)throw new Error('invalid_ai_output');
   for(const proof of answer.evidence){
     if(!Number.isInteger(proof.line)||proof.line<1||proof.line>lines.length||
        typeof proof.quote!=='string'||proof.quote.length<3||proof.quote.length>200||
-       !lines[proof.line-1].includes(proof.quote))throw new Error('unsupported_quote');
+       !lines[proof.line-1].includes(proof.quote)||
+       /^(?:\[(?:待核实|待补充|待确认|请填写)[^\]]*\]|TODO|TBD)$/i.test(proof.quote.trim()))
+       throw new Error('unsupported_quote');
   }
   if(answer.questions.some(x=>typeof x!=='string'||x.length>300))throw new Error('invalid_questions');
   return {summary:answer.summary,evidence:answer.evidence.map(x=>({line:x.line,quote:x.quote})),questions:answer.questions};
 }
 async function handler(req,res){
   res.setHeader('Cache-Control','no-store');
+  res.setHeader('X-Content-Type-Options','nosniff');
   if(req.method!=='POST')return fail(res,405,'POST_ONLY');
+  if(!/^application\/json(?:\s*;|$)/i.test(req.headers['content-type']||''))
+    return fail(res,415,'JSON_REQUIRED');
+  const length=Number(req.headers['content-length']||0);
+  if(!Number.isFinite(length)||length>512)return fail(res,413,'REQUEST_TOO_LARGE');
   const body=typeof req.body==='string'?(()=>{try{return JSON.parse(req.body)}catch{return null}})():req.body;
-  if(!body||typeof body!=='object'||Object.keys(body).length!==1||!uuid.test(body.memory_id||''))
+  if(!body||typeof body!=='object'||Array.isArray(body)||
+     Object.keys(body).length!==1||!uuid.test(body.memory_id||'')||
+     Buffer.byteLength(JSON.stringify(body),'utf8')>512)
     return fail(res,400,'INVALID_DRAFT_ID');
   if(process.env.AI_SUMMARY_ENABLED!=='true'||!process.env.OPENAI_API_KEY||
      !process.env.SUPABASE_URL||!process.env.SUPABASE_PUBLISHABLE_KEY)
@@ -38,7 +47,9 @@ async function handler(req,res){
   let base;
   try{
     const u=new URL(process.env.SUPABASE_URL);
-    if(u.protocol!=='https:'||u.username||u.password)throw new Error('invalid_config');
+    if(u.protocol!=='https:'||!u.hostname.endsWith('.supabase.co')||
+       u.username||u.password||u.port||u.pathname!=='/'||u.search||u.hash)
+      throw new Error('invalid_config');
     base=u.origin;
   }catch{return fail(res,503,'SERVER_CONFIGURATION_ERROR')}
   const headers={apikey:process.env.SUPABASE_PUBLISHABLE_KEY,Authorization:token};
