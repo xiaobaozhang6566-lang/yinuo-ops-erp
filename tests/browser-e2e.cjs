@@ -30,7 +30,7 @@ async function scenario(browser,role){
     if(req.method()!=='GET')return route.fulfill({status:403,body:'{"message":"Mock forbids unexpected writes"}',contentType:'application/json'});
     if(path.startsWith('/rest/v1/ops_members?'))return reply([{user_id:userId,role,is_active:true,display_name:role==='manager'?'演示管理员':'演示员工'}]);
     if(path.startsWith('/rest/v1/stores?'))return reply([]);
-    if(path.startsWith('/rest/v1/ops_tasks?'))return reply([task]);
+    if(path.startsWith('/rest/v1/ops_tasks?'))return reply(path.includes('select=id&')?[{id:taskId}]:[task]);
     if(path.startsWith('/rest/v1/ai_p0_memories?')){
       if(path.includes('status=eq.APPROVED'))return reply([approved]);
       if(path.includes('status=eq.DRAFT'))return reply(role==='manager'?[draft]:[]);
