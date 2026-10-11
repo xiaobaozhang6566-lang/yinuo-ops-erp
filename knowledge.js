@@ -258,12 +258,10 @@
     if(unresolved.length)issues.push('待核实内容：第 '+unresolved.slice(0,10).join('、')+' 行'+(unresolved.length>10?'等':'')+'，不得视为事实。');
     if(body.length>10000)issues.push('正文过长：超过 10000 字符，需先核对完整原件。');
     if(item?.source_type==='TASK_CASE'){
-      if(!/^TASK:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(item.source_ref||'')))
+      if(!validTaskCaseSource(item.source_ref))
         issues.push('任务来源格式异常：需关联完整任务编号。');
-      const required=['问题描述','复盘原因','防复发措施','证据链接'];
-      for(const field of required){
-        if(!lines.some(line=>line.trimStart().startsWith(field+'：')))
-          issues.push('案例缺少字段：'+field+'。');
+      for(const field of caseDraftMissingFields(body)){
+        issues.push('案例字段未核验：'+field+'（缺失、重复、占位或链接不合规）。');
       }
     }
     return ['审核风险清单（规则检查，不是 AI 生成内容）',
