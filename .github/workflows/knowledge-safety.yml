@@ -28,6 +28,7 @@ jobs:
           node tests/p0-review-contract.test.cjs
           node tests/preview-entry-preflight.test.cjs
           node tests/ai-draft-summary.test.cjs
+          node tests/release-upstream-gate.test.cjs
           node tests/release-readiness.cjs
       - name: Check JavaScript syntax
         run: |
