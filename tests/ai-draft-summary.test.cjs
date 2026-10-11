@@ -19,11 +19,13 @@ function run(body,role='manager',opts={}){
     return {ok:true,json:async()=>data};
   };
   const res={status(n){this.code=n;return this},json(o){this.data=o;return this},setHeader(){return this}};
-  return Promise.resolve(handler({method:'POST',body:{memory_id:id},headers:{authorization:'Bearer fake.jwt'}},res))
+  return Promise.resolve(handler({method:'POST',body:{memory_id:id},headers:{authorization:'Bearer fake.jwt','content-type':'application/json'}},res))
     .then(()=>({res,calls})).finally(()=>{global.fetch=fetchOriginal;for(const key of Object.keys(env)){if(saved[key]===undefined)delete process.env[key];else process.env[key]=saved[key]}});
 }
 (async()=>{
  assert.throws(()=>handler._test.grounded({summary:'bad',evidence:[{line:3,quote:'fabricated'}],questions:[]},['Fact']),/unsupported_quote/);
+ assert.throws(()=>handler._test.grounded({summary:'',evidence:[{line:1,quote:'First fact'}],questions:[]},['First fact line']),/invalid_ai_output/);
+ assert.throws(()=>handler._test.grounded({summary:'Test',evidence:[{line:1,quote:'[待核实]'}],questions:[]},['[待核实]']),/unsupported_quote/);
  let result=await run({},'manager',{disabled:true});
  assert.equal(result.res.code,503);assert.equal(result.calls.length,0);
  result=await run({},'employee');
