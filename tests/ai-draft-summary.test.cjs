@@ -13,7 +13,7 @@ function run(body,role='manager',opts={}){
     let data;
     if(String(url).includes('/auth/v1/user'))data={id:opts.wrongUser?'not-a-uuid':uid};
     else if(String(url).includes('/ops_members?'))data=[{user_id:opts.wrongMemberId?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':uid,role,is_active:!opts.inactive}];
-    else if(String(url).includes('/ai_p0_memories?'))data=[{id:opts.wrongDocument?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':id,status:opts.approved?'APPROVED':'DRAFT',version:2,title:'Test',source_type:'MANUAL',source_ref:opts.noSource?'':'DOC-1',content:{body:opts.emptySource?'':'First fact line\nSecond fact line'}}];
+    else if(String(url).includes('/ai_p0_memories?')){draftReads++;data=[{id:opts.wrongDocument?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':id,status:opts.approved||(opts.changedAfterAI&&draftReads>1)?'APPROVED':'DRAFT',version:2,title:'Test',source_type:'MANUAL',source_ref:opts.noSource?'':'DOC-1',content:{body:opts.emptySource?'':'First fact line\nSecond fact line'}}];}
     else if(String(url).includes('api.openai.com'))data={choices:[{message:{content:JSON.stringify(opts.ungrounded?{summary:'Test',evidence:[{line:2,quote:'invented claim'}],questions:[]}:{summary:'Test',evidence:[{line:1,quote:'First fact'}],questions:[]})}}]};
     else throw Error('Unexpected URL');
     return {ok:true,json:async()=>data};
