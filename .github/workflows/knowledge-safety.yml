@@ -71,7 +71,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_local_fixture.sql
       - name: Verify additive RPC staged without API execute
         run: |
-          psql -X -v ON_ERROR_STOP=1 -f tests/p0_staged_rollback_roundtrip.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/p0_legacy_rpc_compatibility_roundtrip.sql
       - name: Install candidate review RPC
         run: psql -X -v ON_ERROR_STOP=1 -f sql/kb_review_with_reason_TEST_ONLY.sql
       - name: Run transaction and authorization cases
