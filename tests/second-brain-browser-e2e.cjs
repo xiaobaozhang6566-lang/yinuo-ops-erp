@@ -28,9 +28,9 @@ async function check(browser,role){
  });
  await p.goto(BASE,{waitUntil:'domcontentloaded'});
  await p.getByText('AI 第二大脑',{exact:true}).click();
- await p.getByText('任务执行留痕').waitFor();
+ await p.getByRole('heading',{name:'任务执行留痕'}).waitFor();
  await p.getByText('测试任务').waitFor();
- assert.equal(await p.getByText('任务执行留痕').count(),1);
+ assert.equal(await p.getByRole('heading',{name:'任务执行留痕'}).count(),1);
  if(role==='manager'){
    await p.getByRole('button',{name:'读取待审核草稿'}).click();
    await p.getByText('内部草稿').waitFor();
