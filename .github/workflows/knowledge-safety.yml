@@ -27,11 +27,13 @@ jobs:
           node tests/knowledge-contract.test.cjs
           node tests/p0-review-contract.test.cjs
           node tests/preview-entry-preflight.test.cjs
+          node tests/ai-draft-summary.test.cjs
           node tests/release-readiness.cjs
       - name: Check JavaScript syntax
         run: |
           node --check app.js
           node --check knowledge.js
+          node --check api/kb-draft-summary.js
           node --check v13.js
           node --check v14.js
 
