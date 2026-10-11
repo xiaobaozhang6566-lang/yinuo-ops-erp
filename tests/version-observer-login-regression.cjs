@@ -3,7 +3,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 let observers=[],writes=0;
 function node(value){let text=value;return {get textContent(){return text},set textContent(x){writes++;text=x;if(writes>30)throw Error('MutationObserver version update loop');for(const f of observers)f()}}}
 const title=node('V1.2'),caption=node('运营任务 V1.2');
-const context={window:{},document:{documentElement:{},querySelectorAll(sel){return sel==='.top small'?[title]:sel==='.box .muted'?[caption]:[]}},MutationObserver:class{constructor(fn){this.fn=fn}observe(){observers.push(this.fn)}},};
+const context={window:{},S:{member:null},document:{documentElement:{},querySelectorAll(sel){return sel==='.top small'?[title]:sel==='.box .muted'?[caption]:[]}},MutationObserver:class{constructor(fn){this.fn=fn}observe(){observers.push(this.fn)}},};
 vm.createContext(context);
 vm.runInContext(fs.readFileSync('v13.js','utf8'),context);
 vm.runInContext(fs.readFileSync('v14.js','utf8'),context);
