@@ -2,6 +2,8 @@
 // Review-only AI notes. Disabled until explicitly configured on the server.
 // This endpoint never changes approval status or writes a knowledge record.
 const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+// Keep bearer tokens tied to the audited identity provider; do not accept arbitrary Supabase tenants.
+const SUPABASE_ORIGIN='https://iscadepgzegrvcqzosso.supabase.co';
 const respond=(res,code,payload)=>res.status(code).json(payload);
 const fail=(res,code,error)=>respond(res,code,{error});
 const extract=record=>typeof record.content==='string'?record.content:
@@ -47,8 +49,8 @@ async function handler(req,res){
   let base;
   try{
     const u=new URL(process.env.SUPABASE_URL);
-    if(u.protocol!=='https:'||!u.hostname.endsWith('.supabase.co')||
-       u.username||u.password||u.port||u.pathname!=='/'||u.search||u.hash)
+    if(u.origin!==SUPABASE_ORIGIN||u.username||u.password||u.port||
+       u.pathname!=='/'||u.search||u.hash)
       throw new Error('invalid_config');
     base=u.origin;
   }catch{return fail(res,503,'SERVER_CONFIGURATION_ERROR')}
