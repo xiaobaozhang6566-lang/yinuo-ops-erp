@@ -199,12 +199,19 @@
   function reviewEvidencePreview(item){
     const content=item?.content||{};
     const raw=typeof content==='string'?content:typeof content?.body==='string'?content.body:typeof content?.summary==='string'?content.summary:'';
-    const excerpts=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,5).map(x=>x.slice(0,220));
+    const lines=raw.split(/\r?\n/);
+    const evidence=lines.map((text,index)=>({line:index+1,text:text.trim()})).filter(x=>x.text);
+    const excerpts=evidence.slice(0,5).map(x=>'第 '+x.line+' 行：'+x.text.slice(0,220)+(x.text.length>220?'…（本行已截断）':''));
+    const sourceType=String(item?.source_type||'').trim(),sourceRef=String(item?.source_ref||'').trim();
+    const missingSource=!sourceType||!sourceRef;
     return ['审核前原文摘录（非 AI 结论，未经核验）',
       '编号：'+String(item?.memory_key||'未提供')+' · V'+String(item?.version||'?'),
       '范围：'+String(item?.scope||'未提供')+' · 状态：'+String(item?.status||'未知'),
-      '来源：'+String(item?.source_type||'未提供')+' / '+String(item?.source_ref||'未提供'),
+      '来源：'+(sourceType||'未提供')+' / '+(sourceRef||'未提供'),
+      ...(missingSource?['警示：缺少来源类型或来源编号，必须先补充来源证据。']:[]),
+      '原文行数：'+evidence.length+'，当前展示前 '+excerpts.length+' 行。',
       '原文：',...(excerpts.length?excerpts:['（正文为空，需人工补齐）']),
+      ...(evidence.length>5?['提示：已省略 '+(evidence.length-5)+' 行，审核前必须阅读完整原文。']:[]),
       '人工核对：来源真实性、适用范围、生效时间、旧版本冲突。',
       '不得据此直接批准或发布 SOP。'].join('\n');
   }
