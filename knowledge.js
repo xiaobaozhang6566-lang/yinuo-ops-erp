@@ -204,6 +204,8 @@
     const excerpts=evidence.slice(0,5).map(x=>'第 '+x.line+' 行：'+x.text.slice(0,220)+(x.text.length>220?'…（本行已截断）':''));
     const sourceType=String(item?.source_type||'').trim(),sourceRef=String(item?.source_ref||'').trim();
     const missingSource=!sourceType||!sourceRef;
+    const unresolved=/\[(?:请填写|请补充|待确认|待核实)[^\]]*\]|(?:TODO|TBD)/i.test(raw);
+    const noBody=!raw.trim();
     return ['审核前原文摘录（非 AI 结论，未经核验）',
       '编号：'+String(item?.memory_key||'未提供')+' · V'+String(item?.version||'?'),
       '范围：'+String(item?.scope||'未提供')+' · 状态：'+String(item?.status||'未知'),
@@ -212,6 +214,8 @@
       '原文行数：'+evidence.length+'，当前展示前 '+excerpts.length+' 行。',
       '原文：',...(excerpts.length?excerpts:['（正文为空，需人工补齐）']),
       ...(evidence.length>5?['提示：已省略 '+(evidence.length-5)+' 行，审核前必须阅读完整原文。']:[]),
+      ...(unresolved?['警示：正文含待填写或待核实内容，禁止作为已经核验的事实。']:[]),
+      ...(noBody?['警示：知识正文为空，必须退回补全。']:[]),
       '人工核对：来源真实性、适用范围、生效时间、旧版本冲突。',
       '不得据此直接批准或发布 SOP。'].join('\n');
   }
