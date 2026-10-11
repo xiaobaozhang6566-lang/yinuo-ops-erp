@@ -6,7 +6,7 @@ const env={AI_SUMMARY_ENABLED:'true',OPENAI_API_KEY:'test-only',SUPABASE_URL:'ht
 function run(body,role='manager',opts={}){
   const saved={};for(const key of Object.keys(env)){saved[key]=process.env[key];process.env[key]=env[key];}
   if(opts.disabled)process.env.AI_SUMMARY_ENABLED='false';
-  let calls=[];
+  let calls=[];let draftReads=0;
   const fetchOriginal=global.fetch;
   global.fetch=async(url,req={})=>{
     calls.push({url:String(url),method:req.method||'GET'});
@@ -53,6 +53,9 @@ function run(body,role='manager',opts={}){
  assert.equal(result.res.code,400);assert.equal(result.calls.length,0);
  result=await run({},'manager',{noAuth:true});
  assert.equal(result.res.code,401);assert.equal(result.calls.length,0);
+ result=await run({},'manager',{changedAfterAI:true});
+ assert.equal(result.res.code,409);
+ assert.equal(result.res.data.error,'DRAFT_CHANGED_DURING_SUMMARY');
  result=await run({},'manager');
  assert.equal(result.res.code,200);assert.equal(result.res.data.status,'DRAFT');
  assert.ok(result.calls.every(x=>x.method==='GET'||x.url.includes('api.openai.com')));
