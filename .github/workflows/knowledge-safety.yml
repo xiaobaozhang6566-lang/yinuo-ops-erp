@@ -69,3 +69,27 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f sql/p0_employee_company_read_CANDIDATE.sql
       - name: Check employee RLS visibility
         run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_employee_rls_cases.sql
+
+  preview-http-smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Serve isolated static preview
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/yinuo-preview-http.log 2>&1 &
+          echo $! > /tmp/yinuo-preview-http.pid
+      - name: Smoke test HTTP entrypoint and assets
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if curl --silent --fail http://127.0.0.1:8765/index.html -o /tmp/yinuo-index.html; then break; fi
+            sleep 1
+          done
+          grep -q 'knowledge.js?v=' /tmp/yinuo-index.html
+          for asset in app.js v13.js v14.js knowledge.js knowledge.css; do
+            curl --silent --show-error --fail "http://127.0.0.1:8765/$asset" -o /tmp/yinuo-asset
+            test -s /tmp/yinuo-asset
+          done
+          echo "Isolated HTTP smoke checks passed. Not a hosted Vercel or browser E2E test."
