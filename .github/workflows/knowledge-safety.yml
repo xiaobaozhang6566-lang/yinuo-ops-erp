@@ -21,6 +21,7 @@ jobs:
         run: |
           node tests/knowledge-contract.test.cjs
           node tests/p0-review-contract.test.cjs
+          node tests/preview-entry-preflight.test.cjs
       - name: Check JavaScript syntax
         run: |
           node --check app.js
