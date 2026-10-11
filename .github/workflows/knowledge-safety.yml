@@ -68,6 +68,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Load disposable fixtures
         run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_local_fixture.sql
+      - name: Verify additive RPC staged without API execute
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f sql/kb_review_additive_STAGED_REVOKED.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/p0_staged_rpc_access_cases.sql
       - name: Install candidate review RPC
         run: psql -X -v ON_ERROR_STOP=1 -f sql/kb_review_with_reason_TEST_ONLY.sql
       - name: Run transaction and authorization cases
