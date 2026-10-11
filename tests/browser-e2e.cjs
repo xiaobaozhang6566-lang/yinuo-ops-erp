@@ -56,6 +56,8 @@ async function scenario(browser,role){
     await page.getByRole('button',{name:'查看待审核草稿'}).click();
     await page.getByText('审核前测试草稿').waitFor();
     assert.equal(await page.getByRole('button',{name:'审核通过（待开放）'}).isDisabled(),true);
+    await page.getByRole('button',{name:'生成审核风险清单（规则检查）'}).click();
+    await page.getByText('来源不完整：缺少来源类型或原始编号。',{exact:false}).waitFor();
     await page.getByRole('button',{name:'生成审核前原文摘录（只读）'}).click();
     await page.getByText('警示：缺少来源类型或来源编号',{exact:false}).waitFor();
     await page.getByRole('button',{name:'整理为经验案例草稿'}).click();
