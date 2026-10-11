@@ -195,6 +195,19 @@
     return result;
     }finally{KB.adminBusy=false}
   }
+  // P2 source-grounded pre-review excerpt; no AI judgment, approvals, or writes.
+  function reviewEvidencePreview(item){
+    const content=item?.content||{};
+    const raw=typeof content==='string'?content:typeof content?.body==='string'?content.body:typeof content?.summary==='string'?content.summary:'';
+    const excerpts=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,5).map(x=>x.slice(0,220));
+    return ['审核前原文摘录（非 AI 结论，未经核验）',
+      '编号：'+String(item?.memory_key||'未提供')+' · V'+String(item?.version||'?'),
+      '范围：'+String(item?.scope||'未提供')+' · 状态：'+String(item?.status||'未知'),
+      '来源：'+String(item?.source_type||'未提供')+' / '+String(item?.source_ref||'未提供'),
+      '原文：',...(excerpts.length?excerpts:['（正文为空，需人工补齐）']),
+      '人工核对：来源真实性、适用范围、生效时间、旧版本冲突。',
+      '不得据此直接批准或发布 SOP。'].join('\n');
+  }
   async function showDrafts(){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager'||KB.adminBusy)return;
     KB.adminBusy=true;host.textContent='正在加载待审核草稿…';
@@ -219,6 +232,12 @@
         details.querySelector('.kb-audit-toggle').onclick=()=>showAuditHistory(item.id,details);
         details.querySelector('.kb-version-toggle').onclick=()=>showVersionHistory(item,details);
         card.appendChild(form);
+        const evidenceButton=document.createElement('button');
+        evidenceButton.type='button';evidenceButton.className='btn gray';
+        evidenceButton.textContent='生成审核前原文摘录（只读）';
+        const evidenceOutput=document.createElement('pre');evidenceOutput.className='kb-content';
+        evidenceButton.onclick=()=>{evidenceOutput.textContent=reviewEvidencePreview(item);};
+        card.appendChild(evidenceButton);card.appendChild(evidenceOutput);
         const field=form.querySelector('textarea'),counter=form.querySelector('.kb-char-count');
         field.addEventListener('input',()=>{const n=field.value.trim().length;counter.textContent=n>=10?'已输入 '+n+' 字，可进行模拟预览':'已输入 '+n+' 字，还需 '+(10-n)+' 字';form.querySelector('.kb-review-feedback').textContent='';});
         form.querySelectorAll('[data-intent]').forEach(btn=>btn.onclick=()=>{
