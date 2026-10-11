@@ -129,3 +129,21 @@ assert.ok(p1Context.checkFields(bodyFor('https://example.com/evidence')+'\n证�
 assert.match(js,/const linked=await api\('\/rest\/v1\/ops_tasks\?select=id&id=eq\.'/);
 assert.match(js,/关联任务不存在或当前账号无权读取/);
 console.log('P1 evidence URL and source lookup guards passed.');
+
+// P2 rules-only risk checklist must report missing provenance and unresolved source lines.
+const riskStart=js.indexOf('  function reviewRiskChecklist(item){');
+const riskEnd=js.indexOf('  async function showDrafts()',riskStart);
+assert.ok(riskStart>=0&&riskEnd>riskStart,'P2 risk function exists');
+const riskContext={};
+vm.runInNewContext(js.slice(riskStart,riskEnd)+';this.risk=reviewRiskChecklist;',riskContext);
+const check=riskContext.risk;
+const clean={memory_key:'SOP-1',version:1,status:'DRAFT',source_type:'MANUAL',source_ref:'DOC-1',content:{body:'已核验测试文本'}};
+assert.match(check({...clean,source_ref:''}),/来源不完整/);
+assert.match(check({...clean,content:{body:'事实\n[待核实]'}}),/第 2 行/);
+assert.match(check({...clean,content:{body:''}}),/正文缺失/);
+assert.match(check({...clean,status:'APPROVED'}),/状态异常/);
+assert.match(check(clean),/不表示内容真实性/);
+assert.doesNotMatch(check(clean),/来源不完整/);
+assert.match(js,/生成审核风险清单（规则检查）/);
+assert.match(js,/riskOutput\.textContent=reviewRiskChecklist\(item\)/);
+console.log('P2 risk checklist behavioral tests passed.');
