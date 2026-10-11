@@ -122,6 +122,8 @@ jobs:
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/yinuo-browser-e2e.log 2>&1 &
       - name: Run P1/P2 browser E2E with mocked backend
         run: node tests/browser-e2e.cjs
+      - name: Run integrated browser and real API handler with synthetic providers
+        run: node tests/browser-api-integration.cjs
 
   release-merge-gate:
     if: github.event_name == 'pull_request'
