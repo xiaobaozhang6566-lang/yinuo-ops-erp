@@ -57,3 +57,11 @@ assert.match(js,/const missing=required\.filter/);
 assert.match(js,/missing\.length/);
 assert.match(js,/TASK:\[0-9a-f-\]/);
 console.log('P1 case draft mandatory section and task source guards passed.');
+
+// P2 excerpt is source-based, read-only, and never invokes approval or generative APIs.
+assert.match(js,/function reviewEvidencePreview\(item\)/);
+assert.match(js,/生成审核前原文摘录（只读）/);
+assert.match(js,/未经核验/);
+assert.match(js,/不得据此直接批准或发布 SOP/);
+assert.match(js,/evidenceOutput\.textContent=reviewEvidencePreview\(item\)/);
+console.log('P2 source excerpt UI contract passed (no AI generation).');
