@@ -29,6 +29,7 @@ jobs:
           node tests/preview-entry-preflight.test.cjs
           node tests/ai-draft-summary.test.cjs
           node tests/release-upstream-gate.test.cjs
+          node tests/real-jwt-roles-readonly.test.cjs
           node tests/release-readiness.cjs
       - name: Check JavaScript syntax
         run: |
