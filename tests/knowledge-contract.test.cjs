@@ -75,3 +75,9 @@ console.log('P2 evidence provenance and truncation warnings contract passed.');
 // P2 provenance preview requires source fields in the DRAFT read query.
 assert.match(js,/select=id,title,category,scope,memory_key,version,content,created_at,status,source_type,source_ref&status=eq\.DRAFT/);
 console.log('P2 draft provenance query contract passed.');
+
+assert.match(js,/警示：正文含待填写或待核实内容/);
+assert.match(js,/警示：知识正文为空/);
+assert.match(js,/const unresolved=/);
+assert.match(js,/const noBody=/);
+console.log('P2 draft incompleteness warnings checked.');
