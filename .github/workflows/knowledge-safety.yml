@@ -1,0 +1,154 @@
+name: AI Knowledge Safety Checks
+on:
+  push:
+    branches:
+      - feature/ai-second-brain-v1
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+concurrency:
+  group: knowledge-safety-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run knowledge contract tests
+        run: |
+          node tests/knowledge-contract.test.cjs
+          node tests/p0-review-contract.test.cjs
+          node tests/preview-entry-preflight.test.cjs
+          node tests/ai-draft-summary.test.cjs
+          node tests/release-upstream-gate.test.cjs
+          node tests/real-jwt-roles-readonly.test.cjs
+          node tests/release-readiness.cjs
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check knowledge.js
+          node --check api/kb-draft-summary.js
+          node --check v13.js
+          node --check v14.js
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: test_only
+          POSTGRES_DB: kb_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d kb_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: test_only
+      PGDATABASE: kb_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Load disposable fixtures
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_local_fixture.sql
+      - name: Verify additive RPC staged without API execute
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/p0_legacy_rpc_compatibility_roundtrip.sql
+      - name: Install candidate review RPC
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/kb_review_with_reason_TEST_ONLY.sql
+      - name: Run transaction and authorization cases
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_local_cases.sql
+
+      - name: Prepare employee RLS fixtures
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_employee_rls_fixture.sql
+      - name: Install candidate company read policy
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/p0_employee_company_read_CANDIDATE.sql
+      - name: Check employee RLS visibility
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/p0_employee_rls_cases.sql
+
+  preview-http-smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Serve isolated static preview
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/yinuo-preview-http.log 2>&1 &
+          echo $! > /tmp/yinuo-preview-http.pid
+      - name: Smoke test HTTP entrypoint and assets
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if curl --silent --fail http://127.0.0.1:8765/index.html -o /tmp/yinuo-index.html; then break; fi
+            sleep 1
+          done
+          grep -q 'knowledge.js?v=' /tmp/yinuo-index.html
+          for asset in app.js v13.js v14.js knowledge.js knowledge.css; do
+            curl --silent --show-error --fail "http://127.0.0.1:8765/$asset" -o /tmp/yinuo-asset
+            test -s /tmp/yinuo-asset
+          done
+          echo "Isolated HTTP smoke checks passed. Not a hosted Vercel or browser E2E test."
+
+  browser-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve local static application
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/yinuo-browser-e2e.log 2>&1 &
+      - name: Run P1/P2 browser E2E with mocked backend
+        run: node tests/browser-e2e.cjs
+      - name: Run integrated browser and real API handler with synthetic providers
+        run: node tests/browser-api-integration.cjs
+
+  release-merge-gate:
+    # Always run on PR even when an upstream job fails; fail closed explicitly.
+    needs: [static-contract, postgres-integration, preview-http-smoke, browser-e2e]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require every P1/P2/P4 CI job to pass
+        env:
+          STATIC_RESULT: ${{ needs.static-contract.result }}
+          POSTGRES_RESULT: ${{ needs.postgres-integration.result }}
+          HTTP_RESULT: ${{ needs.preview-http-smoke.result }}
+          BROWSER_RESULT: ${{ needs.browser-e2e.result }}
+        run: node tests/release-upstream-gate.cjs
+      - name: Require complete V1.0 release evidence before main merge
+        run: node tests/release-readiness.cjs --enforce
