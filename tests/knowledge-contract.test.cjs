@@ -51,3 +51,9 @@ assert.match(js,/form\.dataset\.caseSource==='TASK_CASE'/);
 assert.match(js,/p_source_type:form\.dataset\.caseSource==='TASK_CASE'\?'TASK_CASE':'MANUAL'/);
 assert.match(js,/请先填写问题描述、已核验的根因/);
 console.log('P1 case draft completeness checks passed.');
+
+assert.match(js,/const required=\['问题描述','复盘原因','防复发措施','证据链接'\]/);
+assert.match(js,/const missing=required\.filter/);
+assert.match(js,/missing\.length/);
+assert.match(js,/TASK:\[0-9a-f-\]/);
+console.log('P1 case draft mandatory section and task source guards passed.');
