@@ -121,12 +121,19 @@
     const required=['问题描述','复盘原因','防复发措施','证据链接'];
     const lines=String(body||'').split(/\r?\n/);
     return required.filter(label=>{
-      const line=lines.find(text=>text.trimStart().startsWith(label+'：'));
-      const value=line?.trimStart().slice((label+'：').length).trim()||'';
-      return !value
-        || /^\[[^\]]*\]$/.test(value)
+      const hits=lines.filter(text=>text.trimStart().startsWith(label+'：'));
+      if(hits.length!==1)return true;
+      const value=hits[0].trimStart().slice((label+'：').length).trim();
+      if(!value||/^\[[^\]]*\]$/.test(value)
         || /\[(?:请填写|请补充|待确认|待核实|待填写)[^\]]*\]/.test(value)
-        || /^(?:待补充|待确认|待核实|待填写|暂无|无|未知|未提供|N\/?A|TODO|TBD|—|-)$/i.test(value);
+        || /^(?:待补充|待确认|待核实|待填写|暂无|无|未知|未提供|N\/?A|TODO|TBD|—|-)$/i.test(value))return true;
+      if(label==='证据链接'){
+        try{
+          const url=new URL(value);
+          return url.protocol!=='https:'||!url.hostname||Boolean(url.username||url.password);
+        }catch{return true;}
+      }
+      return false;
     });
   }
   function validTaskCaseSource(source){
@@ -157,6 +164,14 @@
       }
       KB.adminBusy=true;btn.disabled=true;msg.textContent='正在保存草稿…';
       try{
+        if(form.dataset.caseSource==='TASK_CASE'){
+          const taskId=String(fd.get('source')||'').trim().slice(5);
+          const linked=await api('/rest/v1/ops_tasks?select=id&id=eq.'+encodeURIComponent(taskId)+'&limit=1');
+          if(!Array.isArray(linked)||linked.length!==1||linked[0]?.id!==taskId){
+            msg.textContent='关联任务不存在或当前账号无权读取；未保存草稿。';
+            return;
+          }
+        }
         await api('/rest/v1/rpc/ai_p0_save_memory',{method:'POST',body:JSON.stringify({p_scope:fd.get('scope'),p_key:key,p_category:fd.get('category'),p_title:title,p_content:{body},p_source_type:form.dataset.caseSource==='TASK_CASE'?'TASK_CASE':'MANUAL',p_source_ref:String(fd.get('source')||'').trim()||null})});
         msg.textContent='草稿保存成功；尚未审核生效。';form.reset();
       }catch(err){msg.textContent='保存失败：'+(err?.message||'请检查权限')}
