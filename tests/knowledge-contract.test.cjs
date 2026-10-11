@@ -81,3 +81,27 @@ assert.match(js,/警示：知识正文为空/);
 assert.match(js,/const unresolved=/);
 assert.match(js,/const noBody=/);
 console.log('P2 draft incompleteness warnings checked.');
+
+// P2 behavior tests: execute the real pure preview function, not only source regexes.
+const previewStart=js.indexOf('  function reviewEvidencePreview(item){');
+const previewEnd=js.indexOf('  async function showDrafts()',previewStart);
+assert.ok(previewStart>=0 && previewEnd>previewStart,'P2 preview function must exist');
+const sandbox={};
+vm.runInNewContext(js.slice(previewStart,previewEnd)+';this.runPreview=reviewEvidencePreview;',sandbox);
+const preview=sandbox.runPreview;
+const base={memory_key:'SOP-1',version:2,scope:'COMPANY',status:'DRAFT',source_type:'MANUAL',source_ref:'DOC-1'};
+const validPreview=preview({...base,content:{body:'First line\nSecond line'}});
+assert.match(validPreview,/第 1 行：First line/);
+assert.match(validPreview,/第 2 行：Second line/);
+assert.doesNotMatch(validPreview,/警示：缺少来源类型/);
+const missingSourcePreview=preview({...base,source_ref:'',content:{body:'Verified text'}});
+assert.match(missingSourcePreview,/警示：缺少来源类型或来源编号/);
+const emptyPreview=preview({...base,content:{body:''}});
+assert.match(emptyPreview,/警示：知识正文为空/);
+const unresolvedPreview=preview({...base,content:{body:'Root cause [待核实]'}});
+assert.match(unresolvedPreview,/警示：正文含待填写或待核实内容/);
+const longPreview=preview({...base,content:{body:Array.from({length:7},(_,i)=>'Line '+i).join('\n')}});
+assert.match(longPreview,/已省略 2 行/);
+const truncatedPreview=preview({...base,content:{body:'A'.repeat(230)}});
+assert.match(truncatedPreview,/本行已截断/);
+console.log('P2 preview functional cases passed.');
