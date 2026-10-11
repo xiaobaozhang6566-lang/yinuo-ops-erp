@@ -134,8 +134,8 @@ console.log('P1 evidence URL and source lookup guards passed.');
 const riskStart=js.indexOf('  function reviewRiskChecklist(item){');
 const riskEnd=js.indexOf('  async function showDrafts()',riskStart);
 assert.ok(riskStart>=0&&riskEnd>riskStart,'P2 risk function exists');
-const riskContext={};
-vm.runInNewContext(js.slice(riskStart,riskEnd)+';this.risk=reviewRiskChecklist;',riskContext);
+const riskContext={URL};
+vm.runInNewContext(js.slice(p1Start,p1End)+js.slice(riskStart,riskEnd)+';this.risk=reviewRiskChecklist;',riskContext);
 const check=riskContext.risk;
 const clean={memory_key:'SOP-1',version:1,status:'DRAFT',source_type:'MANUAL',source_ref:'DOC-1',content:{body:'已核验测试文本'}};
 assert.match(check({...clean,source_ref:''}),/来源不完整/);
@@ -147,3 +147,13 @@ assert.doesNotMatch(check(clean),/来源不完整/);
 assert.match(js,/生成审核风险清单（规则检查）/);
 assert.match(js,/riskOutput\.textContent=reviewRiskChecklist\(item\)/);
 console.log('P2 risk checklist behavioral tests passed.');
+
+const sampleCase={
+  ...clean,source_type:'TASK_CASE',source_ref:'TASK:11111111-1111-4111-8111-111111111111',
+  content:{body:['问题描述：实际差错','复盘原因：原因已核对','防复发措施：双人复核','证据链接：待补充'].join('\n')}
+};
+assert.match(check(sampleCase),/案例字段未核验：证据链接/);
+const caseWithProof={...sampleCase,content:{body:sampleCase.content.body.replace('证据链接：待补充','证据链接：https://example.com/record')}};
+assert.doesNotMatch(check(caseWithProof),/案例字段未核验/);
+assert.match(check({...caseWithProof,source_ref:'TASK:missing'}),/任务来源格式异常/);
+console.log('P2 retrospective case evidence consistency passed.');
