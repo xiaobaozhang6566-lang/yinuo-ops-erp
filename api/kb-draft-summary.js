@@ -78,6 +78,15 @@ async function handler(req,res){
     let answer;
     try{answer=grounded(JSON.parse(result.choices?.[0]?.message?.content||''),lines)}
     catch{return fail(res,502,'EVIDENCE_VERIFICATION_FAILED')}
+    // A reviewer may edit or approve the draft while the AI request is running.
+    // Re-read under the same user's RLS permissions and fail closed on any change.
+    const latest=await request(base+'/rest/v1/ai_p0_memories?select=id,status,title,content,source_type,source_ref,version&id=eq.'+encodeURIComponent(body.memory_id)+'&limit=1',{headers});
+    const current=Array.isArray(latest)?latest[0]:null;
+    if(!current||current.id!==doc.id||current.status!=='DRAFT'||
+       current.version!==doc.version||current.title!==doc.title||
+       current.source_type!==doc.source_type||current.source_ref!==doc.source_ref||
+       JSON.stringify(current.content)!==JSON.stringify(doc.content))
+      return fail(res,409,'DRAFT_CHANGED_DURING_SUMMARY');
     return respond(res,200,{memory_id:doc.id,version:doc.version,status:'DRAFT',
       source_type:doc.source_type,source_ref:doc.source_ref,...answer,
       notice:'AI 未审核草稿；不得作为正式知识或自动批准依据。'});
