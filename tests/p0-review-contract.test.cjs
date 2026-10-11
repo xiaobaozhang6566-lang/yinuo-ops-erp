@@ -29,6 +29,9 @@ const gate=fs.readFileSync('sql/p0_review_release_gate_DO_NOT_RUN.sql','utf8');
 assert.match(gate,/revoke execute on function public\.ai_p0_review_memory\(uuid,boolean\) from public, anon, authenticated/i);
 assert.match(gate,/to_regprocedure\('public\.kb_review_memory_with_reason\(uuid,boolean,text\)'\)/);
 assert.match(gate,/grant execute on function public\.kb_review_memory_with_reason\(uuid,boolean,text\) to authenticated/i);
+assert.match(gate,/from public, anon, authenticated, service_role/i);
+assert.match(gate,/has_function_privilege\('service_role','public\.ai_p0_review_memory\(uuid,boolean\)','EXECUTE'\)/);
+assert.match(gate,/has_function_privilege\('service_role','public\.kb_review_memory_with_reason\(uuid,boolean,text\)','EXECUTE'\)/);
 console.log('P0: release permission gate statically checked; NOT executed against production.');
 
 // Fail closed until production JWT/RLS and legacy RPC permissions are verified.
