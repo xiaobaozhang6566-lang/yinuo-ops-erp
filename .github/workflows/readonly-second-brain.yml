@@ -1,0 +1,17 @@
+name: AI Second Brain Readonly Release
+on:
+  push:
+    branches:
+      - release/ai-second-brain-readonly-v1
+  workflow_dispatch:
+jobs:
+  readonly-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check app.js && node --check v13.js && node --check v14.js && node --check second-brain-readonly.js
+      - run: node tests/version-observer-login-regression.cjs
+      - run: node tests/second-brain-readonly.test.cjs
