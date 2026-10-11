@@ -219,7 +219,7 @@
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager'||KB.adminBusy)return;
     KB.adminBusy=true;host.textContent='正在加载待审核草稿…';
     try{
-      const rows=await api('/rest/v1/ai_p0_memories?select=id,title,category,scope,memory_key,version,content,created_at,status&status=eq.DRAFT&order=created_at.desc&limit=100');
+      const rows=await api('/rest/v1/ai_p0_memories?select=id,title,category,scope,memory_key,version,content,created_at,status,source_type,source_ref&status=eq.DRAFT&order=created_at.desc&limit=100');
       KB.drafts=Array.isArray(rows)?rows:[];
       host.innerHTML='<h4>待审核草稿（'+KB.drafts.length+'）</h4><p class="muted">批准会替换同编号当前已批准版本，请先核对内容和适用范围。</p>'+
         (KB.drafts.length?KB.drafts.map(x=>'<div class="kb-item"><h3>'+esc(x.title)+'</h3><div class="kb-meta">'+esc(labels[x.category]||x.category)+' · '+esc(x.scope)+' · '+esc(x.memory_key)+' · V'+esc(x.version)+'</div><pre class="kb-content"></pre><button class="btn gray" disabled title="审核接口升级后开放">审核通过（待开放）</button> <button class="btn gray" disabled title="审核接口升级后开放">退回草稿（待开放）</button></div>').join(''):'<p class="muted">当前没有待审核草稿。</p>');
