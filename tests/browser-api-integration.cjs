@@ -20,13 +20,13 @@ const draft={id:draftId,title:'AI 集成核验草稿',category:'SOP',scope:'COMP
 const approved={...draft,id:'33333333-3333-4333-8333-333333333333',title:'测试已批准知识',
   status:'APPROVED',reviewed_at:now,effective_at:now,expires_at:null};
 Object.assign(process.env,{AI_SUMMARY_ENABLED:'true',OPENAI_API_KEY:'synthetic',
-  SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'synthetic'});
+  SUPABASE_URL:'https://iscadepgzegrvcqzosso.supabase.co',SUPABASE_PUBLISHABLE_KEY:'synthetic'});
 let modelCalls=0,backendWrites=0;
 const nativeFetch=global.fetch;
 global.fetch=async(url,opts={})=>{
   const u=String(url),auth=opts.headers?.Authorization||'';
   const isManager=auth==='Bearer mock-manager';
-  if(u.startsWith('https://example.supabase.co/')){
+  if(u.startsWith('https://iscadepgzegrvcqzosso.supabase.co/')){
     if((opts.method||'GET')!=='GET'){backendWrites++;throw Error('Unexpected database write');}
     const value=u.includes('/auth/v1/user')?{id:isManager?managerId:employeeId}:
       u.includes('/rest/v1/ops_members?')?[{user_id:isManager?managerId:employeeId,role:isManager?'manager':'employee',is_active:true}]:
