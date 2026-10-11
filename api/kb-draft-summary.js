@@ -78,6 +78,14 @@ async function handler(req,res){
     let answer;
     try{answer=grounded(JSON.parse(result.choices?.[0]?.message?.content||''),lines)}
     catch{return fail(res,502,'EVIDENCE_VERIFICATION_FAILED')}
+    // A session may expire or a manager may be disabled while the AI is processing.
+    // Recheck session and role before returning private review notes.
+    const latestUser=await request(base+'/auth/v1/user',{headers});
+    if(latestUser?.id!==user.id)return fail(res,401,'SESSION_CHANGED_DURING_SUMMARY');
+    const latestMembers=await request(base+'/rest/v1/ops_members?select=user_id,role,is_active&user_id=eq.'+encodeURIComponent(user.id)+'&limit=1',{headers});
+    if(!Array.isArray(latestMembers)||latestMembers[0]?.user_id!==user.id||
+       latestMembers[0]?.role!=='manager'||latestMembers[0]?.is_active!==true)
+      return fail(res,403,'MANAGER_ACCESS_REVOKED');
     // A reviewer may edit or approve the draft while the AI request is running.
     // Re-read under the same user's RLS permissions and fail closed on any change.
     const latest=await request(base+'/rest/v1/ai_p0_memories?select=id,status,title,content,source_type,source_ref,version&id=eq.'+encodeURIComponent(body.memory_id)+'&limit=1',{headers});
