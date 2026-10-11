@@ -11,15 +11,15 @@ function run(body,role='manager',opts={}){
   global.fetch=async(url,req={})=>{
     calls.push({url:String(url),method:req.method||'GET'});
     let data;
-    if(String(url).includes('/auth/v1/user'))data={id:uid};
-    else if(String(url).includes('/ops_members?'))data=[{user_id:uid,role,is_active:true}];
-    else if(String(url).includes('/ai_p0_memories?'))data=[{id,status:'DRAFT',version:2,title:'Test',source_type:'MANUAL',source_ref:opts.noSource?'':'DOC-1',content:{body:'First fact line\nSecond fact line'}}];
+    if(String(url).includes('/auth/v1/user'))data={id:opts.wrongUser?'not-a-uuid':uid};
+    else if(String(url).includes('/ops_members?'))data=[{user_id:opts.wrongMemberId?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':uid,role,is_active:!opts.inactive}];
+    else if(String(url).includes('/ai_p0_memories?'))data=[{id:opts.wrongDocument?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':id,status:opts.approved?'APPROVED':'DRAFT',version:2,title:'Test',source_type:'MANUAL',source_ref:opts.noSource?'':'DOC-1',content:{body:opts.emptySource?'':'First fact line\nSecond fact line'}}];
     else if(String(url).includes('api.openai.com'))data={choices:[{message:{content:JSON.stringify(opts.ungrounded?{summary:'Test',evidence:[{line:2,quote:'invented claim'}],questions:[]}:{summary:'Test',evidence:[{line:1,quote:'First fact'}],questions:[]})}}]};
     else throw Error('Unexpected URL');
     return {ok:true,json:async()=>data};
   };
   const res={status(n){this.code=n;return this},json(o){this.data=o;return this},setHeader(){return this}};
-  return Promise.resolve(handler({method:'POST',body:{memory_id:id},headers:{authorization:'Bearer fake.jwt','content-type':'application/json'}},res))
+  return Promise.resolve(handler({method:opts.method||'POST',body:body||{memory_id:id},headers:{...(opts.noAuth?{}:{authorization:'Bearer fake.jwt'}),'content-type':opts.contentType||'application/json',...(opts.contentLength?{'content-length':opts.contentLength}:{})}},res))
     .then(()=>({res,calls})).finally(()=>{global.fetch=fetchOriginal;for(const key of Object.keys(env)){if(saved[key]===undefined)delete process.env[key];else process.env[key]=saved[key]}});
 }
 (async()=>{
@@ -34,6 +34,25 @@ function run(body,role='manager',opts={}){
  assert.equal(result.res.code,422);assert.ok(!result.calls.some(x=>x.url.includes('api.openai.com')));
  result=await run({},'manager',{ungrounded:true});
  assert.equal(result.res.code,502);
+ result=await run({},'manager',{inactive:true});
+ assert.equal(result.res.code,403);assert.ok(!result.calls.some(x=>x.url.includes('api.openai.com')));
+ result=await run({},'manager',{wrongMemberId:true});
+ assert.equal(result.res.code,403);
+ result=await run({},'manager',{wrongUser:true});
+ assert.equal(result.res.code,401);
+ result=await run({},'manager',{approved:true});
+ assert.equal(result.res.code,404);
+ result=await run({},'manager',{wrongDocument:true});
+ assert.equal(result.res.code,404);
+ result=await run({},'manager',{emptySource:true});
+ assert.equal(result.res.code,422);
+ for(const opts of [{method:'GET'},{contentType:'text/plain'},{contentLength:'10000'}]){
+   result=await run({},'manager',opts);assert.ok(result.res.code>=400);assert.equal(result.calls.length,0);
+ }
+ result=await run({memory_id:'not-a-uuid'},'manager');
+ assert.equal(result.res.code,400);assert.equal(result.calls.length,0);
+ result=await run({},'manager',{noAuth:true});
+ assert.equal(result.res.code,401);assert.equal(result.calls.length,0);
  result=await run({},'manager');
  assert.equal(result.res.code,200);assert.equal(result.res.data.status,'DRAFT');
  assert.ok(result.calls.every(x=>x.method==='GET'||x.url.includes('api.openai.com')));
