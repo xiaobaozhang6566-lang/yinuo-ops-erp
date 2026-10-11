@@ -22,9 +22,14 @@ async function verifyRole(name,jwt,key,fetcher){
   const drafts=await get('/rest/v1/ai_p0_memories?select=id,status&status=eq.DRAFT&limit=1');
   if(!Array.isArray(drafts)||(name==='manager'?!drafts.length:!!drafts.length))
     throw new Error(name+' draft visibility mismatch');
-  const tasks=await get('/rest/v1/ops_tasks?select=id&limit=1');
-  if(!Array.isArray(tasks))throw new Error(name+' task API failed');
-  return {name,auth:'PASS',selfMember:'PASS',draftVisibility:'PASS',tasksReadable:'PASS',userId:user.id};
+  // Compare the complete small task set across two real sessions, not just API reachability.
+  const tasks=await get('/rest/v1/ops_tasks?select=id&order=id.asc&limit=1000');
+  if(!Array.isArray(tasks)||tasks.length>=1000||
+     tasks.some(task=>!UUID.test(task?.id||''))||
+     new Set(tasks.map(task=>task.id)).size!==tasks.length)
+    throw new Error(name+' task scope is invalid or requires pagination');
+  return {name,auth:'PASS',selfMember:'PASS',draftVisibility:'PASS',
+    tasksReadable:'PASS',userId:user.id,taskIds:tasks.map(task=>task.id)};
 }
 async function verify(config=process.env,fetcher=fetch){
   if(config.SUPABASE_URL&&config.SUPABASE_URL.replace(/\/$/,'')!==API)
@@ -35,6 +40,11 @@ async function verify(config=process.env,fetcher=fetch){
   const manager=await verifyRole('manager',config.YINUO_MANAGER_TEST_JWT,key,fetcher);
   const employee=await verifyRole('employee',config.YINUO_EMPLOYEE_TEST_JWT,key,fetcher);
   if(manager.userId===employee.userId)throw new Error('Manager and employee must be different Auth accounts');
+  const managerTasks=new Set(manager.taskIds);
+  if(employee.taskIds.some(id=>!managerTasks.has(id)))
+    throw new Error('Employee sees tasks outside the manager-visible scope');
+  if(!manager.taskIds.some(id=>!employee.taskIds.includes(id)))
+    throw new Error('No manager-only task available to prove employee task isolation');
   return {status:'PASS',project:'iscadepgzegrvcqzosso',
     roles:[manager,employee].map(({name,auth,selfMember,draftVisibility,tasksReadable})=>({
       name,auth,selfMember,draftVisibility,tasksReadable
