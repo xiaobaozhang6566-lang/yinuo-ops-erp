@@ -18,7 +18,7 @@ async function scenario(browser,role){
     localStorage.setItem('ynerp',JSON.stringify({user:{id:userId},access_token:'synthetic-token',refresh_token:'synthetic-refresh'}));
   },{userId});
   const page=await context.newPage();
-  let writes=[],requests=[];
+  let writes=[],requests=[],aiRequests=[],summaryMode='disabled',draftSource='';
   await page.route(SUPABASE+'**',async route=>{
     const req=route.request(),url=new URL(req.url()),path=url.pathname+url.search;
     requests.push(req.method()+' '+path);
@@ -33,7 +33,7 @@ async function scenario(browser,role){
     if(path.startsWith('/rest/v1/ops_tasks?'))return reply(path.includes('select=id&')?[{id:taskId}]:[task]);
     if(path.startsWith('/rest/v1/ai_p0_memories?')){
       if(path.includes('status=eq.APPROVED'))return reply([approved]);
-      if(path.includes('status=eq.DRAFT'))return reply(role==='manager'?[draft]:[]);
+      if(path.includes('status=eq.DRAFT'))return reply(role==='manager'?[{...draft,source_ref:draftSource}]:[]);
       return reply([]);
     }
     if(path.startsWith('/rest/v1/ops_task_events?'))return reply([{id:'event-1',event_type:'TASK_COMPLETED',created_at:now,detail:{source:'test-fixture'}}]);
@@ -43,7 +43,17 @@ async function scenario(browser,role){
   });
   // Mock POST member list separately, so all authorized setup requests remain isolated.
   await page.route(SUPABASE+'rest/v1/rpc/ops_list_members',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{user_id:managerId,role:'manager',is_active:true,display_name:'演示管理员'}])}));
-  await page.route('**/api/kb-draft-summary',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'AI_SUMMARY_DISABLED'})}));
+  await page.route('**/api/kb-draft-summary',route=>{
+    const req=route.request();
+    aiRequests.push({method:req.method(),body:JSON.parse(req.postData()||'{}'),authorization:req.headers().authorization});
+    let code=200,data={memory_id:draft.id,version:draft.version,status:'DRAFT',
+      source_type:'MANUAL',source_ref:'DOC-1',summary:'原文核验待办',
+      evidence:[{line:1,quote:'核查原文第一行'}],questions:['第二行是否已得到核实？']};
+    if(summaryMode==='disabled'){code=503;data={error:'AI_SUMMARY_DISABLED'};}
+    if(summaryMode==='mismatch')data={...data,version:99};
+    if(summaryMode==='error'){code=502;data={error:'AI_PROVIDER_UNAVAILABLE'};}
+    return route.fulfill({status:code,contentType:'application/json',body:JSON.stringify(data)});
+  });
   await page.goto(HOST+'/index.html',{waitUntil:'domcontentloaded'});
   await page.getByRole('button',{name:'AI 知识中心'}).click();
   await page.getByText('已批准测试知识').waitFor();
@@ -64,6 +74,23 @@ async function scenario(browser,role){
     await page.getByText('来源不完整：缺少来源类型或原始编号。',{exact:false}).waitFor();
     await page.getByRole('button',{name:'生成审核前原文摘录（只读）'}).click();
     await page.getByText('警示：缺少来源类型或来源编号',{exact:false}).waitFor();
+    draftSource='DOC-1';summaryMode='success';
+    await page.getByRole('button',{name:'查看待审核草稿'}).click();
+    await page.getByText('审核前测试草稿').waitFor();
+    await page.getByRole('button',{name:'生成 AI 草稿总结（试点）'}).click();
+    await page.getByText('AI 未审核草稿总结 · 仅供管理员复核',{exact:false}).waitFor();
+    await page.getByText('第 1 行：核查原文第一行',{exact:false}).waitFor();
+    assert.equal(aiRequests.at(-1).method,'POST');
+    assert.equal(aiRequests.at(-1).body.memory_id,draft.id);
+    assert.equal(aiRequests.at(-1).authorization,'Bearer synthetic-token');
+    assert.equal(writes.length,0,'AI summary must remain read-only');
+    summaryMode='mismatch';
+    await page.getByRole('button',{name:'生成 AI 草稿总结（试点）'}).click();
+    await page.getByText('AI 总结请求失败',{exact:false}).waitFor();
+    summaryMode='error';
+    await page.getByRole('button',{name:'生成 AI 草稿总结（试点）'}).click();
+    await page.getByText('AI 总结不可用（AI_PROVIDER_UNAVAILABLE）',{exact:false}).waitFor();
+    assert.equal(writes.length,0,'Errors cannot write knowledge');
     await page.getByRole('button',{name:'整理为经验案例草稿'}).click();
     await page.locator('textarea[name="body"]').waitFor();
     const initial=await page.locator('textarea[name="body"]').inputValue();
@@ -84,6 +111,7 @@ async function scenario(browser,role){
   }else{
     assert.equal(await page.getByRole('button',{name:'查看待审核草稿'}).count(),0,'Employees cannot use admin draft UI');
     assert.equal(await page.getByRole('button',{name:'整理为经验案例草稿'}).count(),0,'Employees cannot create case drafts');
+    assert.equal(await page.getByRole('button',{name:'生成 AI 草稿总结（试点）'}).count(),0,'Employees cannot request AI draft summaries');
     assert.equal(writes.length,0);
   }
   assert.ok(!requests.some(x=>x.includes('/rpc/ai_p0_review_memory')||x.includes('/rpc/kb_review_memory_with_reason')),'No approval requests permitted');
