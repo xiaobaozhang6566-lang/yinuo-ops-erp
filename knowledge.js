@@ -244,6 +244,34 @@
       '人工核对：来源真实性、适用范围、生效时间、旧版本冲突。',
       '不得据此直接批准或发布 SOP。'].join('\n');
   }
+  // P2 offline reviewer checklist: source-based diagnostics, NOT AI judgment or approval.
+  function reviewRiskChecklist(item){
+    const content=item?.content||{};
+    const body=typeof content==='string'?content:typeof content?.body==='string'?content.body:typeof content?.summary==='string'?content.summary:'';
+    const lines=body.split(/\r?\n/);
+    const issues=[];
+    if(item?.status!=='DRAFT')issues.push('状态异常：当前条目不是待审核草稿。');
+    if(!String(item?.source_type||'').trim()||!String(item?.source_ref||'').trim())
+      issues.push('来源不完整：缺少来源类型或原始编号。');
+    if(!body.trim())issues.push('正文缺失：必须补充可核验的原始内容。');
+    const unresolved=lines.flatMap((line,i)=>/\[(?:请填写|请补充|待确认|待核实|待填写)[^\]]*\]|(?:TODO|TBD)/i.test(line)?[i+1]:[]);
+    if(unresolved.length)issues.push('待核实内容：第 '+unresolved.slice(0,10).join('、')+' 行'+(unresolved.length>10?'等':'')+'，不得视为事实。');
+    if(body.length>10000)issues.push('正文过长：超过 10000 字符，需先核对完整原件。');
+    if(item?.source_type==='TASK_CASE'){
+      if(!/^TASK:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(item.source_ref||'')))
+        issues.push('任务来源格式异常：需关联完整任务编号。');
+      const required=['问题描述','复盘原因','防复发措施','证据链接'];
+      for(const field of required){
+        if(!lines.some(line=>line.trimStart().startsWith(field+'：')))
+          issues.push('案例缺少字段：'+field+'。');
+      }
+    }
+    return ['审核风险清单（规则检查，不是 AI 生成内容）',
+      '知识：'+String(item?.memory_key||'未提供')+' · V'+String(item?.version||'?'),
+      ...(issues.length?issues.map((v,i)=>(i+1)+'. '+v):['格式检查未发现异常；这不表示内容真实性、来源可靠性或审批通过。']),
+      '必须人工核验：原件真实性、权限范围、适用日期、版本冲突及证据有效性。',
+      '此清单只读，不执行审批或保存。'].join('\n');
+  }
   async function showDrafts(){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager'||KB.adminBusy)return;
     KB.adminBusy=true;host.textContent='正在加载待审核草稿…';
@@ -274,6 +302,13 @@
         const evidenceOutput=document.createElement('pre');evidenceOutput.className='kb-content';
         evidenceButton.onclick=()=>{evidenceOutput.textContent=reviewEvidencePreview(item);};
         card.appendChild(evidenceButton);card.appendChild(evidenceOutput);
+        const riskButton=document.createElement('button');
+        riskButton.type='button';riskButton.className='btn gray';
+        riskButton.textContent='生成审核风险清单（规则检查）';
+        const riskOutput=document.createElement('pre');
+        riskOutput.className='kb-content';
+        riskButton.onclick=()=>{riskOutput.textContent=reviewRiskChecklist(item);};
+        card.appendChild(riskButton);card.appendChild(riskOutput);
         const field=form.querySelector('textarea'),counter=form.querySelector('.kb-char-count');
         field.addEventListener('input',()=>{const n=field.value.trim().length;counter.textContent=n>=10?'已输入 '+n+' 字，可进行模拟预览':'已输入 '+n+' 字，还需 '+(10-n)+' 字';form.querySelector('.kb-review-feedback').textContent='';});
         form.querySelectorAll('[data-intent]').forEach(btn=>btn.onclick=()=>{
