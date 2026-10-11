@@ -53,9 +53,9 @@ assert.match(js,/案例缺少有效的/);
 console.log('P1 case draft completeness checks passed.');
 
 assert.match(js,/const required=\['问题描述','复盘原因','防复发措施','证据链接'\]/);
-assert.match(js,/const missing=required\.filter/);
+assert.match(js,/return required\.filter/);
 assert.match(js,/missing\.length/);
-assert.match(js,/TASK:\[0-9a-f-\]/);
+assert.match(js,/function validTaskCaseSource/);
 console.log('P1 case draft mandatory section and task source guards passed.');
 
 // P2 excerpt is source-based, read-only, and never invokes approval or generative APIs.
@@ -105,3 +105,19 @@ assert.match(longPreview,/已省略 2 行/);
 const truncatedPreview=preview({...base,content:{body:'A'.repeat(230)}});
 assert.match(truncatedPreview,/本行已截断/);
 console.log('P2 preview functional cases passed.');
+
+// P1 behavioral checks: exercise actual validation guards without a live database.
+const p1Start=js.indexOf('  function caseDraftMissingFields(body){');
+const p1End=js.indexOf('  function showCreate(seed){',p1Start);
+assert.ok(p1Start>=0&&p1End>p1Start);
+const p1Context={};
+vm.runInNewContext(js.slice(p1Start,p1End)+';this.checkFields=caseDraftMissingFields;this.checkSource=validTaskCaseSource;',p1Context);
+const bodyFor=proof=>['问题描述：发现口袋位置错误','复盘原因：原图核对遗漏','防复发措施：增加结构复核','证据链接：'+proof].join('\n');
+assert.ok(p1Context.checkFields(bodyFor('待补充')).includes('证据链接'));
+assert.ok(p1Context.checkFields(bodyFor('[待核实]')).includes('证据链接'));
+assert.ok(p1Context.checkFields(bodyFor('TODO')).includes('证据链接'));
+assert.equal(p1Context.checkFields(bodyFor('https://example.com/evidence')).length,0);
+assert.equal(p1Context.checkSource('TASK:11111111-1111-4111-8111-111111111111'),true);
+assert.equal(p1Context.checkSource('TASK:------------------------------------'),false);
+assert.equal(p1Context.checkSource('TASK:1234'),false);
+console.log('P1 case draft behavior tests passed.');
