@@ -121,3 +121,11 @@ assert.equal(p1Context.checkSource('TASK:11111111-1111-4111-8111-111111111111'),
 assert.equal(p1Context.checkSource('TASK:------------------------------------'),false);
 assert.equal(p1Context.checkSource('TASK:1234'),false);
 console.log('P1 case draft behavior tests passed.');
+
+assert.ok(p1Context.checkFields(bodyFor('not a URL')).includes('证据链接'));
+assert.ok(p1Context.checkFields(bodyFor('http://example.com/evidence')).includes('证据链接'));
+assert.ok(p1Context.checkFields(bodyFor('https://user:pass@example.com/evidence')).includes('证据链接'));
+assert.ok(p1Context.checkFields(bodyFor('https://example.com/evidence')+'\n证据链接：https://example.com/other').includes('证据链接'));
+assert.match(js,/const linked=await api\('\/rest\/v1\/ops_tasks\?select=id&id=eq\.'/);
+assert.match(js,/关联任务不存在或当前账号无权读取/);
+console.log('P1 evidence URL and source lookup guards passed.');
