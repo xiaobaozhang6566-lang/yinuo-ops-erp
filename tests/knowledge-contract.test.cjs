@@ -110,7 +110,7 @@ console.log('P2 preview functional cases passed.');
 const p1Start=js.indexOf('  function caseDraftMissingFields(body){');
 const p1End=js.indexOf('  function showCreate(seed){',p1Start);
 assert.ok(p1Start>=0&&p1End>p1Start);
-const p1Context={};
+const p1Context={URL}; // The application runs in a browser with the standard URL constructor.
 vm.runInNewContext(js.slice(p1Start,p1End)+';this.checkFields=caseDraftMissingFields;this.checkSource=validTaskCaseSource;',p1Context);
 const bodyFor=proof=>['问题描述：发现口袋位置错误','复盘原因：原图核对遗漏','防复发措施：增加结构复核','证据链接：'+proof].join('\n');
 assert.ok(p1Context.checkFields(bodyFor('待补充')).includes('证据链接'));
