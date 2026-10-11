@@ -307,6 +307,47 @@
         riskOutput.className='kb-content';
         riskButton.onclick=()=>{riskOutput.textContent=reviewRiskChecklist(item);};
         card.appendChild(riskButton);card.appendChild(riskOutput);
+        const aiButton=document.createElement('button');
+        aiButton.type='button';aiButton.className='btn gray';
+        aiButton.textContent='生成 AI 草稿总结（试点）';
+        const aiOutput=document.createElement('pre');
+        aiOutput.className='kb-content';
+        aiButton.onclick=async()=>{
+          if(KB.adminBusy||S.member?.role!=='manager'||item.status!=='DRAFT')return;
+          const token=S.session?.access_token;
+          if(!token){aiOutput.textContent='请先登录管理员账号。';return;}
+          aiButton.disabled=true;
+          aiOutput.textContent='正在请求只读 AI 总结，未经审核不能作为正式知识。';
+          try{
+            const response=await fetch('/api/kb-draft-summary',{
+              method:'POST',
+              headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+              body:JSON.stringify({memory_id:item.id}),
+              cache:'no-store'
+            });
+            const data=await response.json();
+            if(!response.ok){
+              aiOutput.textContent=data?.error==='AI_SUMMARY_DISABLED'?
+                'AI 总结尚未在服务端启用，请使用上方原文摘录及风险清单。':
+                'AI 总结不可用（'+String(data?.error||response.status)+'）；未更改任何知识。';
+              return;
+            }
+            if(data.memory_id!==item.id||data.version!==item.version||data.status!=='DRAFT'
+              ||!Array.isArray(data.evidence)||!Array.isArray(data.questions)){
+              throw new Error('AI 返回内容与当前草稿不一致');
+            }
+            aiOutput.textContent=['AI 未审核草稿总结 · 仅供管理员复核',
+              '来源：'+String(data.source_type||'')+' / '+String(data.source_ref||''),
+              '总结：'+String(data.summary||''),
+              '原文证据：',
+              ...data.evidence.map(x=>'第 '+x.line+' 行：'+String(x.quote||'')),
+              '待核实问题：',
+              ...(data.questions.length?data.questions.map((x,i)=>(i+1)+'. '+x):['未列出，请自行核对原文。']),
+              '不得自动批准或作为正式公司知识。'].join('\n');
+          }catch(err){aiOutput.textContent='AI 总结请求失败；请使用原文证据人工复核，知识未被修改。';}
+          finally{aiButton.disabled=false;}
+        };
+        card.appendChild(aiButton);card.appendChild(aiOutput);
         const field=form.querySelector('textarea'),counter=form.querySelector('.kb-char-count');
         field.addEventListener('input',()=>{const n=field.value.trim().length;counter.textContent=n>=10?'已输入 '+n+' 字，可进行模拟预览':'已输入 '+n+' 字，还需 '+(10-n)+' 字';form.querySelector('.kb-review-feedback').textContent='';});
         form.querySelectorAll('[data-intent]').forEach(btn=>btn.onclick=()=>{
