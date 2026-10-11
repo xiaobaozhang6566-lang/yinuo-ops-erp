@@ -6,13 +6,13 @@ const env={AI_SUMMARY_ENABLED:'true',OPENAI_API_KEY:'test-only',SUPABASE_URL:'ht
 function run(body,role='manager',opts={}){
   const saved={};for(const key of Object.keys(env)){saved[key]=process.env[key];process.env[key]=env[key];}
   if(opts.disabled)process.env.AI_SUMMARY_ENABLED='false';
-  let calls=[];let draftReads=0;
+  let calls=[];let draftReads=0;let authReads=0;let memberReads=0;
   const fetchOriginal=global.fetch;
   global.fetch=async(url,req={})=>{
     calls.push({url:String(url),method:req.method||'GET'});
     let data;
-    if(String(url).includes('/auth/v1/user'))data={id:opts.wrongUser?'not-a-uuid':uid};
-    else if(String(url).includes('/ops_members?'))data=[{user_id:opts.wrongMemberId?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':uid,role,is_active:!opts.inactive}];
+    if(String(url).includes('/auth/v1/user')){authReads++;data={id:opts.wrongUser||opts.sessionRevokedAfterAI&&authReads>1?'not-a-uuid':uid};}
+    else if(String(url).includes('/ops_members?')){memberReads++;data=[{user_id:opts.wrongMemberId?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':uid,role:opts.demotedAfterAI&&memberReads>1?'employee':role,is_active:!opts.inactive&&!(opts.disabledAfterAI&&memberReads>1)}];}
     else if(String(url).includes('/ai_p0_memories?')){draftReads++;data=[{id:opts.wrongDocument?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':id,status:opts.approved||(opts.changedAfterAI&&draftReads>1)?'APPROVED':'DRAFT',version:2,title:'Test',source_type:'MANUAL',source_ref:opts.noSource?'':'DOC-1',content:{body:opts.emptySource?'':'First fact line\nSecond fact line'}}];}
     else if(String(url).includes('api.openai.com'))data={choices:[{message:{content:JSON.stringify(opts.ungrounded?{summary:'Test',evidence:[{line:2,quote:'invented claim'}],questions:[]}:{summary:'Test',evidence:[{line:1,quote:'First fact'}],questions:[]})}}]};
     else throw Error('Unexpected URL');
@@ -53,6 +53,12 @@ function run(body,role='manager',opts={}){
  assert.equal(result.res.code,400);assert.equal(result.calls.length,0);
  result=await run({},'manager',{noAuth:true});
  assert.equal(result.res.code,401);assert.equal(result.calls.length,0);
+ result=await run({},'manager',{sessionRevokedAfterAI:true});
+ assert.equal(result.res.code,401);assert.equal(result.res.data.error,'SESSION_CHANGED_DURING_SUMMARY');
+ result=await run({},'manager',{demotedAfterAI:true});
+ assert.equal(result.res.code,403);assert.equal(result.res.data.error,'MANAGER_ACCESS_REVOKED');
+ result=await run({},'manager',{disabledAfterAI:true});
+ assert.equal(result.res.code,403);
  result=await run({},'manager',{changedAfterAI:true});
  assert.equal(result.res.code,409);
  assert.equal(result.res.data.error,'DRAFT_CHANGED_DURING_SUMMARY');
