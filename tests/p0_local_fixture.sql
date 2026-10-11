@@ -4,6 +4,7 @@ create schema if not exists private;
 do $r$ begin
  if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated; end if;
  if not exists(select 1 from pg_roles where rolname='anon') then create role anon; end if;
+ if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role; end if;
 end $r$;
 create or replace function auth.uid() returns uuid language sql stable
 as $f$ select nullif(current_setting('test.user_id',true),'')::uuid $f$;
