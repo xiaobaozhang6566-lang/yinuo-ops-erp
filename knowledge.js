@@ -116,6 +116,22 @@
       });
     }catch(err){host.textContent='任务列表读取失败：'+(err?.message||'权限不足')}
   }
+  // P1 draft guard: reject unresolved placeholders, not just bracketed samples.
+  function caseDraftMissingFields(body){
+    const required=['问题描述','复盘原因','防复发措施','证据链接'];
+    const lines=String(body||'').split(/\r?\n/);
+    return required.filter(label=>{
+      const line=lines.find(text=>text.trimStart().startsWith(label+'：'));
+      const value=line?.trimStart().slice((label+'：').length).trim()||'';
+      return !value
+        || /^\[[^\]]*\]$/.test(value)
+        || /\[(?:请填写|请补充|待确认|待核实|待填写)[^\]]*\]/.test(value)
+        || /^(?:待补充|待确认|待核实|待填写|暂无|无|未知|未提供|N\/?A|TODO|TBD|—|-)$/i.test(value);
+    });
+  }
+  function validTaskCaseSource(source){
+    return /^TASK:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(source||'').trim());
+  }
   function showCreate(seed){
     const host=document.getElementById('kb-admin');if(!host||S.member.role!=='manager')return;
     host.innerHTML='<form id="kb-create-form" class="kb-form"><div class="form-grid"><div class="field"><label>知识编号（同编号生成新版本）</label><input class="input" name="key" required minlength="3" maxlength="160" placeholder="例如 VISUAL-HERO-SOP"></div><div class="field"><label>分类</label><select class="input" name="category">'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></div><div class="field"><label>适用范围</label><select class="input" name="scope"><option value="COMPANY">公司</option><option value="TEAM">团队</option><option value="STORE">店铺</option><option value="PRODUCT">商品</option></select></div><div class="field"><label>标题</label><input class="input" name="title" required minlength="2" maxlength="250"></div><div class="field wide"><label>知识正文</label><textarea class="input" name="body" required maxlength="20000" rows="8"></textarea></div><div class="field wide"><label>来源说明（可选）</label><input class="input" name="source" maxlength="300" placeholder="原始文件名、任务编号等"></div></div><div id="kb-form-msg" role="alert"></div><button class="btn blue" type="submit">保存为待审核草稿</button></form>';
@@ -134,14 +150,8 @@
       const fd=new FormData(form),body=String(fd.get('body')||'').trim(),title=String(fd.get('title')||'').trim(),key=String(fd.get('key')||'').trim();
       if(!body||title.length<2||key.length<3){msg.textContent='请完整填写知识编号、标题和内容。';return}
       if(form.dataset.caseSource==='TASK_CASE'){
-        const required=['问题描述','复盘原因','防复发措施','证据链接'];
-        const lines=body.split(/\r?\n/);
-        const missing=required.filter(label=>{
-          const line=lines.find(x=>x.startsWith(label+'：'));
-          const value=line?.slice((label+'：').length).trim()||'';
-          return !value||/^\[[^\]]*\]$/.test(value)||/\[(请填写|请补充)[^\]]*\]/.test(value);
-        });
-        if(missing.length||!/^TASK:[0-9a-f-]{36}$/i.test(String(fd.get('source')||'').trim())){
+        const missing=caseDraftMissingFields(body);
+        if(missing.length||!validTaskCaseSource(fd.get('source'))){
           msg.textContent='案例缺少有效的'+(missing.join('、')||'关联任务来源')+'；请补齐真实证据并核对任务编号后保存。';return;
         }
       }
