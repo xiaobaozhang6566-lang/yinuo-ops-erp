@@ -65,3 +65,9 @@ assert.match(js,/未经核验/);
 assert.match(js,/不得据此直接批准或发布 SOP/);
 assert.match(js,/evidenceOutput\.textContent=reviewEvidencePreview\(item\)/);
 console.log('P2 source excerpt UI contract passed (no AI generation).');
+
+assert.match(js,/警示：缺少来源类型或来源编号/);
+assert.match(js,/本行已截断/);
+assert.match(js,/审核前必须阅读完整原文/);
+assert.match(js,/第 '\+x\.line\+' 行/);
+console.log('P2 evidence provenance and truncation warnings contract passed.');
