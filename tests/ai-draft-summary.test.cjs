@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const handler=require('../api/kb-draft-summary.js');
 const id='11111111-1111-4111-8111-111111111111';
 const uid='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const env={AI_SUMMARY_ENABLED:'true',OPENAI_API_KEY:'test-only',SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'test-only'};
+const env={AI_SUMMARY_ENABLED:'true',OPENAI_API_KEY:'test-only',SUPABASE_URL:'https://iscadepgzegrvcqzosso.supabase.co',SUPABASE_PUBLISHABLE_KEY:'test-only'};
 function run(body,role='manager',opts={}){
   const saved={};for(const key of Object.keys(env)){saved[key]=process.env[key];process.env[key]=env[key];}
   if(opts.disabled)process.env.AI_SUMMARY_ENABLED='false';
