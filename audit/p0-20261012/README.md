@@ -22,3 +22,11 @@ Scope: audit and test only. No database repair is authorized by this file.
 ## Gates
 - Production change requires rollback or recoverable backup, staging test, review and live smoke check.
 - Vercel team authorization remains blocked; no automatic production promotion.
+
+## Reconciliation findings (follow-up)
+- Sep 5 E store 22 rows: 10 have NO same-store SPU identity or cost; none have same SPU found on another store in this database. Request authoritative mapping/cost, do not infer from product title.
+- Seven rows have same-store SPU costs, but every cost record starts Sep 6 and is tagged IMPORT_DATE_ASSUMED. Source date validity must be confirmed before extending backward.
+- Five historical daily fact rows use IMPORT_DATE_ASSUMED_STORE_SPU_BACKFILL; retain their provisional nature.
+- Source batch 1019 reported rows is not a durable shipping ledger; reimport only from verified original file, reconcile adjustments and deductions.
+- Anonymous live smoke blocked by DNS in local runner; valid role JWT acceptance/rejection still requires authenticated E2E.
+- Vercel project discovered but team-scoped API returns 403; no production promote/rollback until access restored.
