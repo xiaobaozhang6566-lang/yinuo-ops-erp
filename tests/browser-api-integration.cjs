@@ -19,7 +19,7 @@ const draft={id:draftId,title:'AI 集成核验草稿',category:'SOP',scope:'COMP
   source_type:'MANUAL',source_ref:'DOC-INT-001'};
 const approved={...draft,id:'33333333-3333-4333-8333-333333333333',title:'测试已批准知识',
   status:'APPROVED',reviewed_at:now,effective_at:now,expires_at:null};
-Object.assign(process.env,{AI_SUMMARY_ENABLED:'true',AI_SUMMARY_EXTERNAL_TRANSFER_APPROVED:'true',OPENAI_API_KEY:'synthetic',
+Object.assign(process.env,{VERCEL_ENV:'preview',AI_SUMMARY_ENABLED:'true',AI_SUMMARY_EXTERNAL_TRANSFER_APPROVED:'true',OPENAI_API_KEY:'synthetic',
   SUPABASE_URL:'https://iscadepgzegrvcqzosso.supabase.co',SUPABASE_PUBLISHABLE_KEY:'synthetic'});
 let modelCalls=0,backendWrites=0;
 const nativeFetch=global.fetch;

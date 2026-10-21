@@ -41,6 +41,8 @@ async function handler(req,res){
      Object.keys(body).length!==1||!uuid.test(body.memory_id||'')||
      Buffer.byteLength(JSON.stringify(body),'utf8')>512)
     return fail(res,400,'INVALID_DRAFT_ID');
+  // Fail closed: external AI calls from Production and unrecognized environments are forbidden.
+  if(process.env.VERCEL_ENV!=='preview')return fail(res,503,'PREVIEW_ONLY');
   // Separate explicit opt-in for transmitting original company knowledge to an external AI provider.
   if(process.env.AI_SUMMARY_EXTERNAL_TRANSFER_APPROVED!=='true')
     return fail(res,503,'EXTERNAL_AI_TRANSFER_NOT_APPROVED');
