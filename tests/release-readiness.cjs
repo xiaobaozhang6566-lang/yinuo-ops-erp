@@ -4,6 +4,8 @@ const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const kb=fs.readFileSync('knowledge.js','utf8');
 const workflow=fs.readFileSync('.github/workflows/knowledge-safety.yml','utf8');
+const apiSummary=fs.readFileSync('api/kb-draft-summary.js','utf8');
+const aiSummaryTests=fs.readFileSync('tests/ai-draft-summary.test.cjs','utf8');
 const exists=x=>fs.existsSync(x);
 const required=(text,part)=>text.includes(part);
 const checks=[
@@ -22,6 +24,11 @@ const checks=[
       &&required(workflow,'node tests/ai-draft-summary.test.cjs')
       &&required(workflow,'node tests/browser-api-integration.cjs'),
     evidence:'Server handler, authorization tests and integrated browser-to-handler synthetic-provider CI. No live model was contacted.'},
+  {id:'P0-AI-PREVIEW-GATE',pass:required(apiSummary,"if(process.env.VERCEL_ENV!=='preview')return fail(res,503,'PREVIEW_ONLY')")
+      &&required(aiSummaryTests,'productionEnvironment:true')
+      &&required(aiSummaryTests,'localEnvironment:true')
+      &&required(workflow,'node tests/ai-draft-summary.test.cjs'),
+    evidence:'Server rejects external-AI calls outside Preview; Production and undefined-environment denial tests are registered in CI.'},
   {id:'P2-AI-LIVE-SIGNOFF',pass:false,
     evidence:'Requires separately approved Preview-only AI configuration, an actual provider response, model cost and privacy review, and a recorded pass at the release SHA.'},
   {id:'P4-BROWSER-E2E',pass:exists('tests/browser-e2e.cjs')
@@ -35,7 +42,7 @@ const checks=[
   {id:'P0-PRODUCTION-SIGNOFF',pass:false,
     evidence:'Requires separately authorized production permissions/migration assessment and rollback approval.'}
 ];
-assert.equal(checks.length,8);
+assert.equal(checks.length,9);
 const passed=checks.filter(x=>x.pass).length;
 const blocked=checks.filter(x=>!x.pass).map(x=>x.id);
 const report={release:'AI-Second-Brain-V1.0',branch:process.env.GITHUB_REF_NAME||'local',
